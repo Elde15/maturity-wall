@@ -66,13 +66,13 @@ def process(client: SecClient, cached_docs: dict, cik: int, accession: str, form
     if st != 200:
         rec["note"] = f"ex102 status {st}"
         return rec
-    rec.update(ex102_name=ex102["name"], raw_path=str(dest.relative_to(paths.DATA_DIR)), sha256=sha, raw_bytes=size)
+    rec.update(ex102_name=ex102["name"], raw_path=dest.relative_to(paths.DATA_DIR).as_posix(), sha256=sha, raw_bytes=size)
     ex103 = fi.pick(docs, "EX-103")
     if ex103 is not None:
         d3 = raw_path(cik, accession, "ex103")
         st3, sha3, _ = client.download_gz(fi.doc_url(cik, accession, ex103["name"]), d3)
         if st3 == 200:
-            rec.update(ex103_name=ex103["name"], ex103_path=str(d3.relative_to(paths.DATA_DIR)), ex103_sha256=sha3)
+            rec.update(ex103_name=ex103["name"], ex103_path=d3.relative_to(paths.DATA_DIR).as_posix(), ex103_sha256=sha3)
     rec["status"] = "ok"
     return rec
 

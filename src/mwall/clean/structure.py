@@ -98,8 +98,26 @@ def _number_cols(df: pd.DataFrame, col: str) -> pd.DataFrame:
     return df
 
 
+def _ensure_cols(df: pd.DataFrame, names) -> pd.DataFrame:
+    missing = [n for n in names if n not in df.columns]
+    if missing:
+        df = pd.concat([df, pd.DataFrame({n: pd.Series([None] * len(df), index=df.index, dtype=object)
+                                          for n in missing})], axis=1)
+    return df
+
+
 def resolve(assets: pd.DataFrame, props: pd.DataFrame) -> tuple[pd.DataFrame, pd.DataFrame]:
     """Return (loan_period, property_period) for one trust."""
+    from mwall.parse import schema
+
+    assets = _ensure_cols(assets, list(schema.asset_fields()) + sorted(schema.REPEATABLE))
+    props = _ensure_cols(props, list(schema.property_fields()))
+    for c, f in schema.property_fields().items():
+        if f.kind in ("decimal", "integer"):
+            props[c] = pd.to_numeric(props[c], errors="coerce")
+    for c, f in schema.asset_fields().items():
+        if f.kind in ("decimal", "integer"):
+            assets[c] = pd.to_numeric(assets[c], errors="coerce")
     a = _number_cols(_fix_swapped_numbers(assets), "assetNumber")
     a = a[a["number_ok"]].copy() if a["number_ok"].all() else a  # unparsed numbers kept and flagged below
     a["is_child"] = a["child"].notna()
