@@ -63,6 +63,18 @@ def cmd_parse(args) -> None:
     write.run(log=_log, workers=args.workers, ciks=args.cik)
 
 
+def cmd_clean(args) -> None:
+    from mwall.clean import run
+
+    run.run(log=_log, workers=args.workers, ciks=args.cik)
+
+
+def cmd_qa(args) -> None:
+    from mwall.clean import qa_report
+
+    qa_report.run(log=_log)
+
+
 def main(argv: list[str] | None = None) -> None:
     p = argparse.ArgumentParser(prog="mwall")
     sub = p.add_subparsers(dest="cmd", required=True)
@@ -99,6 +111,14 @@ def main(argv: list[str] | None = None) -> None:
     s.add_argument("--workers", type=int, default=2)
     s.add_argument("--cik", type=int, action="append")
     s.set_defaults(func=cmd_parse)
+
+    s = sub.add_parser("clean", help="resolve layouts, decode, flag: loan_period and property_period")
+    s.add_argument("--workers", type=int, default=3)
+    s.add_argument("--cik", type=int, action="append")
+    s.set_defaults(func=cmd_clean)
+
+    s = sub.add_parser("qa", help="write the Gate 1 QA and field-coverage reports to docs/qa")
+    s.set_defaults(func=cmd_qa)
 
     args = p.parse_args(argv)
     args.func(args)

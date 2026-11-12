@@ -41,6 +41,12 @@ def test_loan_ids_distinguish_notes():
     assert parse("4-001").loan_id is None
 
 
-@pytest.mark.parametrize("raw", ["", None, "ABC", "1-2-3-4", "1..2"])
+def test_rootless_notes():
+    a = parse("A-1-C3")
+    assert a.ok and a.root is None and a.note == "A-1-C3" and a.loan_id == "N-A-1-C3"
+    assert parse("A-3-C4").loan_id == "N-A-3-C4"
+
+
+@pytest.mark.parametrize("raw", ["", None, "ABC", "1-2-3-4", "1..2", "Prospectus Loan ID"])
 def test_unparseable(raw):
     assert not parse(raw).ok

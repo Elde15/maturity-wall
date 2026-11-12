@@ -119,7 +119,14 @@ def resolve(assets: pd.DataFrame, props: pd.DataFrame) -> tuple[pd.DataFrame, pd
         if f.kind in ("decimal", "integer"):
             assets[c] = pd.to_numeric(assets[c], errors="coerce")
     a = _number_cols(_fix_swapped_numbers(assets), "assetNumber")
-    a = a[a["number_ok"]].copy() if a["number_ok"].all() else a  # unparsed numbers kept and flagged below
+    # Notes filed with no loan number ("A-1-C3"): notes of one whole loan share
+    # maturity and origination dates, so they get one synthetic negative root.
+    rootless = a["root"].isna() & a["number_ok"] & (a["note"] != "")
+    a["flag_rootless_note"] = rootless
+    if rootless.any():
+        key = (a.loc[rootless, "maturityDate"].astype(str) + "|" + a.loc[rootless, "originationDate"].astype(str))
+        codes = {k: -(i + 1) for i, k in enumerate(sorted(key.unique()))}
+        a.loc[rootless, "root"] = key.map(codes).astype("Int64")
     a["is_child"] = a["child"].notna()
     a["is_note"] = (a["note"] != "") & ~a["is_child"]
     a["is_parent"] = ~a["is_child"] & ~a["is_note"] & a["root"].notna()

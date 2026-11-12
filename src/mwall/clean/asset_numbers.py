@@ -12,6 +12,7 @@ Filers number records in at least these ways (all seen in real EX-102s):
     "1-A-1"       note A-1 of loan 1           root 1, note "A-1"
     "15 A-2-C5"   note A-2-C5 of loan 15       root 15, note "A-2-C5"
     "06A2C"       note A2C of loan 6           root 6, note "A2C"
+    "A-1-C3"      note with no loan number     root None, note "A-1-C3" (grouped later)
 
 A note is a separate loan record (its own balance) that shares collateral with
 the other notes of the same root. A child is a property record. The string is
@@ -27,6 +28,7 @@ from dataclasses import dataclass
 _LOAN = re.compile(r"^0*(\d+)(?:\.0+)?$")
 _CHILD = re.compile(r"^0*(\d+)\s*[-.]\s*0*(\d+)$")
 _NOTE = re.compile(r"^0*(\d+)\s*-?\s*([A-Za-z][A-Za-z0-9-]*)$")
+_ROOTLESS_NOTE = re.compile(r"^[A-Za-z]\d*(?:-[A-Za-z0-9]+)+$|^[A-Za-z]-?\d+[A-Za-z0-9]*$")
 
 
 @dataclass(frozen=True)
@@ -44,8 +46,10 @@ class AssetNumber:
     @property
     def loan_id(self) -> str | None:
         """Identifier of the loan record this number denotes (None for property children)."""
-        if self.root is None or self.child is not None:
+        if self.child is not None:
             return None
+        if self.root is None:
+            return f"N-{self.note}" if self.note else None
         return f"{self.root}{self.note}" if not self.note else f"{self.root}-{self.note}"
 
 
@@ -64,4 +68,6 @@ def parse(raw: str | None) -> AssetNumber:
     if m:
         note = re.sub(r"\s+", "", m.group(2)).upper()
         return AssetNumber(s, int(m.group(1)), note, None, True)
+    if _ROOTLESS_NOTE.match(s) and s.lower() != "prospectus loan id":
+        return AssetNumber(s, None, s.upper().replace(" ", ""), None, True)
     return AssetNumber(s, None, "", None, False)
