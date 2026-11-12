@@ -84,6 +84,12 @@ def extract_balances(raw: bytes) -> dict:
 
 def process(client: SecClient, cik: int, accession: str) -> dict:
     rec = {"trust_cik": cik, "tend_accession": accession, "status": "error", "ex991_name": None}
+    cached = paths.RAW_DIR / str(cik) / f"{accession}.ex991.htm.gz"
+    if cached.exists():  # resume without touching the network
+        with gzip.open(cached, "rb") as fh:
+            rec.update(extract_balances(fh.read()))
+        rec.update(status="ok", ex991_name="(cached)")
+        return rec
     st, _period, docs = fi.fetch_filing_docs(client, cik, accession)
     if st != 200:
         rec["status"] = f"index {st}"
@@ -115,6 +121,15 @@ def targets(per_agent: int | None = None) -> pd.DataFrame:
     return tens
 
 
+def _save(prev: pd.DataFrame, rows: list[dict], out_path) -> pd.DataFrame:
+    new = pd.DataFrame(rows)
+    allr = pd.concat([prev[~prev["tend_accession"].isin(set(new.get("tend_accession", [])))], new], ignore_index=True)
+    tmp = out_path.with_suffix(".tmp.parquet")
+    allr.to_parquet(tmp, index=False)
+    tmp.replace(out_path)
+    return allr
+
+
 def run(client: SecClient, workers: int = 4, per_agent: int | None = None, budget_s: float | None = None,
         log=print) -> pd.DataFrame:
     out_path = paths.META_DIR / "tend_balances.parquet"
@@ -140,10 +155,10 @@ def run(client: SecClient, workers: int = 4, per_agent: int | None = None, budge
             rec["tend_report_date"] = r.report_date
             rows.append(rec)
             if i % 200 == 0:
-                log(f"  {i:,}/{len(futs):,}")
-    new = pd.DataFrame(rows)
-    allr = pd.concat([prev[~prev["tend_accession"].isin(set(new.get("tend_accession", [])))], new], ignore_index=True)
-    allr.to_parquet(out_path, index=False)
+                log(f"  {i:,}/{len(futs):,} ({time.monotonic() - t0:,.0f}s)")
+            if i % 1000 == 0:
+                _save(prev, rows, out_path)  # checkpoint
+    allr = _save(prev, rows, out_path)
     log(f"statements: {len(allr):,}; patterns: {allr.get('tend_pattern', pd.Series(dtype=str)).value_counts().to_dict()}")
     return allr
 
