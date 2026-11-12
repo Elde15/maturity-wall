@@ -1,0 +1,154 @@
+element,parent,schedule_al_item,datatype,description_short
+assetTypeNumber,assets,Item 2(a)(1),string(max 100) [mandatory],The source of the asset number used to specifically identify each asset in the pool.
+assetNumber,assets,Item 2(a)(2),string(max 25) [mandatory],The unique ID number of the asset.
+GroupID,assets,Item 2(a)(3),integer (max 8 digits),The alpha-numeric code assigned to each loan group within a securitization.
+reportingPeriodBeginningDate,assets,Item 2(b)(1),date MM-DD-YYYY,The beginning date of the reporting period.
+reportingPeriodEndDate,assets,Item 2(b)(2),date MM-DD-YYYY,The ending date of the reporting period.
+originatorName,assets,Item 2(c)(1),string(max 150),The name or MERS organization number of the originator entity.
+originationDate,assets,Item 2(c)(2),date MM-DD-YYYY,The date the loan was originated.
+originalLoanAmount,assets,Item 2(c)(3),"decimal(20,8)",The amount of the loan at the time the loan was originated.
+originalTermLoanNumber,assets,Item 2(c)(4),integer (max 8 digits),The term of the loan in months at the time the loan was originated.
+maturityDate,assets,Item 2(c)(5),date MM-DD-YYYY,The date the final scheduled payment is due per the loan documents.
+originalAmortizationTermNumber,assets,Item 2(c)(6),integer (max 8 digits),"The number of months that would have been required to retire the loan through regular payments, as determined at the origination date of the loan."
+originalInterestRatePercentage,assets,Item 2(c)(7),"decimal(20,8)",The rate of interest at the time the loan was originated.
+interestRateSecuritizationPercentage,assets,Item 2(c)(8),"decimal(20,8)",The annual gross interest rate used to calculate interest for the loan as of securitization.
+interestAccrualMethodCode,assets,Item 2(c)(9),code (INTR_ACCRL_METH_CODE_TYPE),"A code that indicates the ""number of days"" convention used to calculate the interest."
+originalInterestRateTypeCode,assets,Item 2(c)(10),code (ORIG_INTR_RT_TYP_CODE_TYPE),"A code that indicates whether the interest rate on the loan is fixed, adjustable, step or other."
+originalInterestOnlyTermNumber,assets,Item 2(c)(11),integer (max 8 digits),The number of months in which the obligor is permitted to pay only interest on the loan.
+firstLoanPaymentDueDate,assets,Item 2(c)(12),date MM-DD-YYYY,The date on which the borrower must pay the first full interest and/or principal payment due on the mortgage in accordance with the loan documents.
+underwritingIndicator,assets,Item 2(c)(13),boolean true/false,"Indicates as to whether the loan or asset met the criteria for the first level of solicitation, credit-granting or underwriting criteria used to originate the pool asset."
+lienPositionSecuritizationCode,assets,Item 2(c)(14),code (LIEN_PSTN_CODE_TYPE),The code that describes the lien position for the loan as of securitization.
+loanStructureCode,assets,Item 2(c)(15),code (LOAN_STCTR_CODE_TYPE),The code that describes the type of loan structure including the seniority of participated mortgage loan components. The code relates to the loan within the securitization.
+paymentTypeCode,assets,Item 2(c)(16),code (PYMNT_TYP_CODE_TYPE),The code that describes the type or method of payment for a loan.
+periodicPrincipalAndInterestPaymentSecuritizationAmount,assets,Item 2(c)(17),"decimal(20,8)",The total amount of principal and interest due on the loan in effect as of securitization.
+scheduledPrincipalBalanceSecuritizationAmount,assets,Item 2(c)(18),"decimal(20,8)",The outstanding scheduled principal balance of the loan as of securitization.
+paymentFrequencyCode,assets,Item 2(c)(19),code (PYMNT_FREQ_CODE_TYPE),The code that describes the frequency mortgage loan payments are required to be made.
+NumberPropertiesSecuritization,assets,Item 2(c)(20),integer (max 8 digits),The number of properties which serve as mortgage collateral for the loan as of securitization.
+NumberProperties,assets,Item 2(c)(21),integer (max 8 digits),The number of properties which serve as mortgage collateral for the loan as of the end of the reporting period.
+graceDaysAllowedNumber,assets,Item 2(c)(22),integer (max 8 digits),The number of days after a mortgage payment is due in which the lender will not require a late payment charge in accordance with the loan documents. Does not include penalties associated with default interest.
+interestOnlyIndicator,assets,Item 2(c)(23),boolean true/false,"Indicates as to whether or not this is a loan for which scheduled interest only is payable, whether for a temporary basis or until the full loan balance is due."
+balloonIndicator,assets,Item 2(c)(24),boolean true/false,Indicates as to whether the loan documents require a lump-sum payment of principal at maturity.
+prepaymentPremiumIndicator,assets,Item 2(c)(25),boolean true/false,Indicates as to whether the obligor is subject to prepayment penalties.
+negativeAmortizationIndicator,assets,Item 2(c)(26),boolean true/false,Indicates whether negative amortization (interest shortage) amounts are permitted to be added back to the unpaid principal balance of the loan if monthly payments should fall below the true amortized amount.
+modifiedIndicator,assets,Item 2(c)(27),boolean true/false,Indicates as to whether the loan has been modified from its original terms .
+armIndexCode,assets,Item 2(c)(28)(i),code (ARM_INDX_CODE_TYPE),The code that describes the index on which an adjustable interest rate is based
+firstRateAdjustmentDate,assets,Item 2(c)(28)(ii),date MM-DD-YYYY,The date on which the first interest rate adjustment becomes effective (subsequent to loan securitization).
+firstPaymentAdjustmentDate,assets,Item 2(c)(28)(iii),date MM-DD-YYYY,The date on which the first adjustment to the regular payment amount becomes effective (after securitization).
+armMarginNumber,assets,Item 2(c)(28)(iv),"decimal(20,8)",The spread added to the index of an ARM loan to determine the interest rate at securitization.
+lifetimeRateCapPercentage,assets,Item 2(c)(28)(v),"decimal(20,8)",The maximum interest rate that can be in effect during the life of the loan.
+lifetimeRateFloorPercentage,assets,Item 2(c)(28)(vi),"decimal(20,8)",The minimum interest rate that can be in effect during the life of the loan.
+periodicRateIncreaseLimitPercentage,assets,Item 2(c)(28)(vii),"decimal(20,8)",The maximum amount the interest rate can increase from any period to the next.
+periodicRateDecreaseLimitPercentage,assets,Item 2(c)(28)(viii),"decimal(20,8)",The maximum amount the interest rate can decrease from any period to the next.
+periodicPaymentAdjustmentMaximumAmount,assets,Item 2(c)(28)(ix),"decimal(20,8)",The maximum amount the principal and interest constant can increase or decrease on any adjustment date.
+periodicPaymentAdjustmentMaximumPercent,assets,Item 2(c)(28)(x),"decimal(20,8)",The maximum percentage amount the payment can increase or decrease from any period to the next.
+rateResetFrequencyCode,assets,Item 2(c)(28)(xi),code (RT_RST_FREQ_CODE_TYPE),The code describing the frequency which the periodic mortgage rate is reset due to an adjustment in the ARM index.
+paymentResetFrequencyCode,assets,Item 2(c)(28)(xii),code (PY_RST_FREQ_CODE_TYPE),The code describing the frequency which the periodic mortgage payment will be adjusted.
+indexLookbackDaysNumber,assets,Item 2(c)(28)(xiii),integer (max 8 digits),The number of days prior to an interest rate adjustment effective date used to determine the appropriate index rate.
+prepaymentLockOutEndDate,assets,Item 2(c)(29)(i),date MM-DD-YYYY,The effective date after which the lender allows prepayment of a loan.
+yieldMaintenanceEndDate,assets,Item 2(c)(29)(ii),date MM-DD-YYYY,The date after which yield maintenance prepayment penalties are no longer effective
+prepaymentPremiumsEndDate,assets,Item 2(c)(29)(iii),date MM-DD-YYYY,The effective date after which prepayment premiums are no longer effective.
+maximumNegativeAmortizationAllowedPercentage,assets,Item 2(c)(30)(i),"decimal(20,8)",The maximum percentage of the original loan balance that can be added to the original loan balance as the result of negative amortization.
+maximumNegativeAmortizationAllowedAmount,assets,Item 2(c)(30)(ii),"decimal(20,8)",The maximum amount of the original loan balance that can be added to the original loan balance as the result of negative amortization.
+negativeAmortizationDeferredInterestCapAmount,assets,Item 2(c)(30)(iii),"decimal(20,8)",The amount for the reporting period that was capitalized (added to) the principal balance.
+deferredInterestCumulativeAmount,assets,Item 2(c)(30)(iv),"decimal(20,8)",The cumulative deferred interest for the reporting period and prior reporting cycles net of any deferred interest collected.
+deferredInterestCollectedAmount,assets,Item 2(c)(30)(v),"decimal(20,8)",The amount of deferred interest collected during the reporting period.
+property,assets,Item 2(d) (container),container (repeatable property group) [repeatable],This is a repeatable group of elements for the type: PROPERTY_TYPE
+propertyName,property,Item 2(d)(1),string(max 150),"The name of the property which serves as mortgage collateral. If The property has been defeased, then populate with defeased."
+propertyAddress,property,Item 2(d)(2),string(max 200),"The address of the property which serves as mortgage collateral. If there are multiple properties, then print ""various."" If a property has been defeased then leave the field empty. For substituted properties, populate with the new proprety information."
+propertyCity,property,Item 2(d)(3),string(max 50),"The city name where the property which serves as mortgage collateral is located. If the property has been defeased, then leave field empty."
+propertyState,property,Item 2(d)(4),string(max 2),"The 2 character abbreviated code, representing the state in which the property which serves as mortgage collateral is located."
+propertyZip,property,Item 2(d)(5),string(max 10),The zip (or postal) code for the property which serves as mortgage collateral.
+propertyCounty,property,Item 2(d)(6),string(max 50),The county in which the property which serves as mortgage collateral is located.
+propertyTypeCode,property,Item 2(d)(7),code (PROPRTY_TYP_CODE_TYPE),The code that describes how the property is being used.
+netRentableSquareFeetNumber,property,Item 2(d)(8),integer (max 8 digits),The net rentable square feet area of the property.
+netRentableSquareFeetSecuritizationNumber,property,Item 2(d)(9),integer (max 8 digits),The net rentable square feet area of the property as determined at the time the property is contributed to the mortgage pool as collateral.
+unitsBedsRoomsNumber,property,Item 2(d)(10),integer (max 8 digits),"If the property type is multifamily, self-storage, healthcare, lodging or mobile home park, the number of units/beds/rooms of the property."
+unitsBedsRoomsSecuritizationNumber,property,Item 2(d)(11),integer (max 8 digits),"If the property type is multifamily, self-storage, healthcare, lodging or mobile home park, the number of units/beds/rooms of the property at securitization."
+yearBuiltNumber,property,Item 2(d)(12),integer (max 8 digits),The year that the property was built.
+yearLastRenovated,property,Item 2(d)(13),integer (max 8 digits),The year that the last major renovation/new construction was completed on the property.
+valuationSecuritizationAmount,property,Item 2(d)(14),"decimal(20,8)",The valuation amount of the property as of the valuation date at securitization.
+valuationSourceSecuritizationCode,property,Item 2(d)(15),code (VAL_SRC_SCRTZTN_CODE_TYPE),The code that identifies the source of the property valuation.
+valuationSecuritizationDate,property,Item 2(d)(16),date MM-DD-YYYY,The date the valuation amount at securitization was determined.
+mostRecentValuationAmount,property,Item 2(d)(17),"decimal(20,8)","If an additional property valuation was obtained by any transaction party or its affiliates after the valuation obtained at securitization, provide the most recent valuation amount."
+mostRecentValuationDate,property,Item 2(d)(18),date MM-DD-YYYY,The date of the most recent valuation.
+mostRecentValuationSourceCode,property,Item 2(d)(19),code (MST_RCNT_VAL_SRC_CODE_TYPE),The code that identifies the source of the most recent property valuation.
+physicalOccupancySecuritizationPercentage,property,Item 2(d)(20),"decimal(20,8)",The percentage of rentable space occupied by tenants.
+mostRecentPhysicalOccupancyPercentage,property,Item 2(d)(21),"decimal(20,8)",The most recent available percentage of rentable space occupied by tenants.
+propertyStatusCode,property,Item 2(d)(22),code (PROPRTY_STAT_CODE_TYPE),A code describing the status of the property.
+defeasanceOptionStartDate,property,Item 2(d)(23),date MM-DD-YYYY,The date when the defeasance option becomes available.
+DefeasedStatusCode,property,Item 2(d)(24),code (DFSNC_STAT_CODE_TYPE),A code that indicates if a loan has or is able to be defeased.
+largestTenant,property,Item 2(d)(25)(i),string(max 150),The tenant that leases the largest square feet of the property based on the most recent annual lease rollover review.
+squareFeetLargestTenantNumber,property,Item 2(d)(25)(ii),integer (max 8 digits),The total number of square feet leased by the large tenant based on the most recent annual lease roll over review.
+leaseExpirationLargestTenantDate,property,Item 2(d)(25)(iii),date MM-DD-YYYY,The date of lease expiration for the largest tenant.
+secondLargestTenant,property,Item 2(d)(26)(i),string(max 150),The tenant that leases the second largest square feet of the property based on the most recent annual lease rollover review.
+squareFeetSecondLargestTenantNumber,property,Item 2(d)(26)(ii),integer (max 8 digits),The total square feet leased by the second largest tenant based on the most recent annual lease rollover review.
+leaseExpirationSecondLargestTenantDate,property,Item 2(d)(26)(iii),date MM-DD-YYYY,The date of lease expiration for the second largest tenant.
+thirdLargestTenant,property,Item 2(d)(27)(i),string(max 150),The tenant that leases the third largest square feet of the property based on the most recent annual lease rollover review.
+squareFeetThirdLargestTenantNumber,property,Item 2(d)(27)(ii),integer (max 8 digits),The total square feet leased by the third largest tenant based on the most recent annual lease rollover review.
+leaseExpirationThirdLargestTenantDate,property,Item 2(d)(27)(iii),date MM-DD-YYYY,The date of lease expiration for the third largest tenant.
+financialsSecuritizationDate,property,Item 2(d)(28)(i),date MM-DD-YYYY,The date of the operating statement for the property used to underwrite the loan.
+mostRecentFinancialsStartDate,property,Item 2(d)(28)(ii),date MM-DD-YYYY,"The first date of the period for the most recent, hard copy operating statement (e.g. year to date or trailing 12 months)."
+mostRecentFinancialsEndDate,property,Item 2(d)(28)(iii),date MM-DD-YYYY,"The last day of the period for the most recent, hard copy operating statement (e.g. year to date or trailing 12 months)."
+revenueSecuritizationAmount,property,Item 2(d)(28)(iv),"decimal(20,8)",The total underwritten revenue amount from all sources for a property as of securitization.
+mostRecentRevenueAmount,property,Item 2(d)(28)(v),"decimal(20,8)",The total revenues for the most recent operating statement reported.
+operatingExpensesSecuritizationAmount,property,Item 2(d)(28)(vi),"decimal(20,8)","The total underwritten operation expenses as of securitization. Include real estate taxes, insurance, management fees, utilities, and repairs and maintenance. Exclude capital expenditures, tenant improvements, and leasing commissions."
+operatingExpensesAmount,property,Item 2(d)(28)(vii),"decimal(20,8)","The total operating expenses for the most recent operating statement. Include real estate taxes, insurance, management fees, utilities, and repairs and maintenance. Exclude capital expenditures, tenant improvements, and leasing commissions."
+netOperatingIncomeSecuritizationAmount,property,Item 2(d)(28)(viii),"decimal(20,8)",The total underwritten revenues less total underwritten operating expenses prior to application of mortgage payments and capital items for all properties as of securitization.
+mostRecentNetOperatingIncomeAmount,property,Item 2(d)(28)(ix),"decimal(20,8)",The total revenues less total operating expenses before capital items and debt service per the most recent operating statement.
+netCashFlowFlowSecuritizationAmount,property,Item 2(d)(28)(x),"decimal(20,8)",The total underwritten revenue less total underwritten operating expenses and capital costs as of securitization.
+mostRecentNetCashFlowAmount,property,Item 2(d)(28)(xi),"decimal(20,8)",The total revenue less the total operating expenses and capital costs but before debt service per the most recent operating statement.
+netOperatingIncomeNetCashFlowSecuritizationCode,property,Item 2(d)(28)(xii),code (NET_OPRTNG_INCM_NET_CASH_FLW_SCRTZTN_CODE_TYPE),The code that describes the method used to calculate at securitization net operating income or net cash flow.
+netOperatingIncomeNetCashFlowCode,property,Item 2(d)(28)(xiii),code (NET_OPRTNG_INCM_NET_CASH_FLW_CODE_TYPE),The code that describes the method used to calculate net operating income or net cash flow.
+mostRecentDebtServiceAmount,property,Item 2(d)(28)(xiv),"decimal(20,8)",The amount of total scheduled or actual payments that cover the same number of months as the most recent financial operating statement.
+debtServiceCoverageNetOperatingIncomeSecuritizationPercentage,property,Item 2(d)(28)(xv),"decimal(20,8)",The ratio of underwritten net operating income to debt service as of securitization.
+mostRecentDebtServiceCoverageNetOperatingIncomePercentage,property,Item 2(d)(28)(xvi),"decimal(20,8)",The ratio of net operating income to debt service during for the most recent operating statement reported.
+debtServiceCoverageNetCashFlowSecuritizationPercentage,property,Item 2(d)(28)(xvii),"decimal(20,8)",The ratio of underwritten net cash flow to debt service as of securitization.
+mostRecentDebtServiceCoverageNetCashFlowpercentage,property,Item 2(d)(28)(xviii),"decimal(20,8)",The ratio of net cash flow to debt service for the most recent financial operating statement.
+debtServiceCoverageSecuritizationCode,property,Item 2(d)(28)(xix),code (DEBT_SRVC_CVRG_CODE_TYPE),"If there are multiple properties underlying the loan, the code that describes how DSCR was calculated."
+mostRecentDebtServiceCoverageCode,property,Item 2(d)(28)(xx),code (MST_RCNT_DEBT_SRVC_AMNT_CODE_TYPE),The code that describes how the debt service coverage ratio was calculated for the most recent financial operating statement.
+mostRecentAnnualLeaseRolloverReviewDate,property,Item 2(d)(28)(xxi),date MM-DD-YYYY,The date of the most recent annual lease rollover review.
+assetAddedIndicator,assets,Item 2(e)(1),boolean true/false,Indicates as to whether the asset was added during the reporting period.
+reportPeriodModificationIndicator,assets,Item 2(e)(2),boolean true/false,Indicates as to whether the loan was modified during the reporting period .
+reportPeriodBeginningScheduleLoanBalanceAmount,assets,Item 2(e)(3),"decimal(20,8)",The scheduled balance as of the beginning of the reporting period.
+totalScheduledPrincipalInterestDueAmount,assets,Item 2(e)(4),"decimal(20,8)",The total amount of principal and interest due on the loan in the month corresponding to the current distribution date.
+reportPeriodInterestRatePercentage,assets,Item 2(e)(5),"decimal(20,8)",The annualized gross interest rate used to calculate the scheduled interest amount due for the reporting period.
+servicerTrusteeFeeRatePercentage,assets,Item 2(e)(6),"decimal(20,8)",The sum of annual fee rates payable to the servicers and trustee.
+scheduledInterestAmount,assets,Item 2(e)(7),"decimal(20,8)",The amount of gross interest payment that was scheduled to be collected during the reporting period.
+otherInterestAdjustmentAmount,assets,Item 2(e)(8),"decimal(20,8)",The amount of any unscheduled interest adjustments during the reporting period
+scheduledPrincipalAmount,assets,Item 2(e)(9),"decimal(20,8)",The principal payment amount that was scheduled to be collected during the reporting period.
+unscheduledPrincipalCollectedAmount,assets,Item 2(e)(10),"decimal(20,8)",The principal prepayments and other unscheduled payments of principal received on the loan during the reporting period.
+otherPrincipalAdjustmentAmount,assets,Item 2(e)(11),"decimal(20,8)","Any other amounts that caused the principal balance of the loan to be decreased or increased during the reporting period , which are not considered unscheduled principal collections and are not scheduled principal amounts."
+reportPeriodEndActualBalanceAmount,assets,Item 2(e)(12),"decimal(20,8)",The outstanding actual balance of the loan as of the end of the reporting period.
+reportPeriodEndScheduledLoanBalanceAmount,assets,Item 2(e)(13),"decimal(20,8)",The scheduled or stated principal balance for the loan (defined in the servicing agreement) as of the end of the reporting period.
+paidThroughDate,assets,Item 2(e)(14),date MM-DD-YYYY,The date the loans scheduled principal and interest is paid through as of the end of the reporting period.
+hyperAmortizingDate,assets,Item 2(e)(15),date MM-DD-YYYY,"The date after which principal and interest may amortize at an accelerated rate, and/or interest expense to mortgagor increases substantially."
+servicingAdvanceMethodCode,assets,Item 2(e)(16)(i),code (SRVC_ADV_METH_CODE_TYPE),A code that describes the manner in which principal and/or interest are advanced by the servicer.
+nonRecoverabilityIndicator,assets,Item 2(e)(16)(ii),boolean true/false,Indicates as to whether the master servicer/special servicer has ceased advancing principal and interest and/or servcing the loan.
+totalPrincipalInterestAdvancedOutstandingAmount,assets,Item 2(e)(16)(iii),"decimal(20,8)",The total outstanding principal and interest advances made (or scheduled to be made by distribution date) by the servicer(s).
+totalTaxesInsuranceAdvancesOutstandingAmount,assets,Item 2(e)(16)(iv),"decimal(20,8)",The total outstanding tax and insurance advances made by the servicer(s) as of the end of the reporting period.
+otherExpensesAdvancedOutstandingAmount,assets,Item 2(e)(16)(v),"decimal(20,8)",The total outstanding other or miscellaneous advances made by the servicer(s) as of the end of the reporting period.
+paymentStatusLoanCode,assets,Item 2(e)(17),code (PYMNT_STAT_LOAN_CODE_TYPE),The code that indicates the payment status of the loan.
+armIndexRatePercentage,assets,Item 2(e)(18)(i),"decimal(20,8)",The index rate used to determine the gross interest for the reporting period.
+nextInterestRatePercentage,assets,Item 2(e)(18)(ii),"decimal(20,8)",The annualized gross interest rate that will be used to determine the next scheduled interest payment.
+nextInterestRateChangeAdjustmentDate,assets,Item 2(e)(18)(iii),date MM-DD-YYYY,The next date that theinterest rate is scheduled to change.
+nextPaymentAdjustmentDate,assets,Item 2(e)(18)(iv),date MM-DD-YYYY,The date that the amount of scheduled principal and/or interest is next scheduled to change.
+primaryServicerName,assets,Item 2(f)(1),string(max 30),The name of the entity that services or will have the right to service the asset.
+mostRecentSpecialServicerTransferDate,assets,Item 2(f)(2),date MM-DD-YYYY,"The date the transfer letter, e-mail, etc. provided by the master servicer is accepted by the special servicer."
+mostRecentMasterServicerReturnDate,assets,Item 2(f)(3),date MM-DD-YYYY,"The date the return letter, email, etc. provided by the Special Servicer which is accepted by the Master Servicer."
+assetSubjectDemandIndicator,assets,Item 2(g),boolean true/false,"Indicates whether during the reporting period the loan was the subject of a demand to repurchase or replace for breach of representations and warranties, including investor demands upon a trustee."
+assetSubjectDemandStatusCode,assets,Item 2(g)(1),code (ASSET_SUBJ_DEMAND_STAT_CODE_TYPE),The code that describes the status of the repurchase demand as of the end of the reporting period.
+repurchaseAmount,assets,Item 2(g)(2),"decimal(20,8)",The amount paid to repurchase the loan from the pool.
+demandResolutionDate,assets,Item 2(g)(3),date MM-DD-YYYY,The date the loan repurchase or replacement demand was resolved.
+repurchaserName,assets,Item 2(g)(4),string(max 150),The name of the repurchaser.
+repurchaseReplacementReasonCode,assets,Item 2(g)(5),code (REPRCH_RPLCMNT_REASN_CODE_TYPE) [repeatable],A code that describes the reason for the repurchase or replacement.
+realizedLossToTrustAmount,assets,Item 2(h),"decimal(20,8)",The difference between net proceeds (after liquidation expenses) and the scheduled or stated principal balance of the loan as of the beginning of the reporting period.
+liquidationPrepaymentCode,assets,Item 2(i)(1),code (LIQDTN_PRPYMNT_CODE_TYPE),The code that decribes any unscheduled payments or liquidation proceeds received during the reporting period.
+liquidationPrepaymentDate,assets,Item 2(i)(2),date MM-DD-YYYY,The effective date on which a unscheduled principal payment or liquidation proceeds were received.
+prepaymentPremiumYieldMaintenanceReceivedAmount,assets,Item 2(i)(3),"decimal(20,8)",The amount received from the borrower during the reporting period in exchange for allowing a borrower to pay-off a loan prior to the maturity or anticipated repayment date.
+workoutStrategyCode,assets,Item 2(j),code (WRKOUT_STRAT_CODE_TYPE) [repeatable],A code that best describes the steps being taken to resolve the loan.
+lastModificationDate,assets,Item 2(k)(1),date MM-DD-YYYY,"The date of the most recent modification. A modification includes any material change to the loan document, exclusing assumptions."
+modificationCode,assets,Item 2(k)(2),code (MOD_CODE_TYPE) [repeatable],The code that describes the type of loan modification.
+postModificationInterestPercentage,assets,Item 2(k)(3),"decimal(20,8)",The new initial interest rate to which the loan was modified.
+postModificationPaymentAmount,assets,Item 2(k)(4),"decimal(20,8)",The new initial principal and interest payment amount to which the loan was modified.
+postModificationMaturityDate,assets,Item 2(k)(5),date MM-DD-YYYY,The new maturity date of the loan after the modification.
+postModificationAmortizationPeriodAmount,assets,Item 2(k)(6),"decimal(20,8)",The new amortization period in months after the modification.

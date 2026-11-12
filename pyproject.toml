@@ -1,0 +1,43 @@
+[project]
+name = "mwall"
+version = "0.1.0"
+description = "Maturity Wall Acquisition Engine: CMBS refinance-risk model and acquisition underwriting on SEC Reg AB II asset-level data"
+readme = "README.md"
+requires-python = ">=3.12,<3.13"
+dependencies = [
+    "requests>=2.32",
+    "lxml>=5.3",
+    "pyarrow>=18.0",
+    "duckdb>=1.1",
+    "pandas>=2.2",
+    "numpy>=2.0",
+    "pyyaml>=6.0",
+]
+
+[project.optional-dependencies]
+model = [
+    "scikit-learn>=1.5",
+    "lightgbm>=4.5",
+    "statsmodels>=0.14",
+    "lifelines>=0.29",
+    "shap>=0.46",
+    "scipy>=1.14",
+    "matplotlib>=3.9",
+]
+
+[dependency-groups]
+dev = ["pytest>=8.3"]
+
+[project.scripts]
+mwall = "mwall.cli:main"
+
+[build-system]
+requires = ["setuptools>=75"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-q"

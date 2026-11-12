@@ -1,0 +1,65 @@
+# Trust universe configuration (SOP section 7, step 2).
+#
+# The definitive CMBS test is the root XML namespace of a trust's EX-102 exhibit.
+# Name patterns are only a cross-check and a way to spot CMBS trusts that file
+# 10-Ds without asset-level data (e.g. pre-Reg AB II 2016 deals).
+
+first_quarter: [2017, 1]
+cmbs_namespace_suffix: "/absee/cmbs/assetdata"
+
+# Regexes (case-insensitive) that look like CMBS trust names. Cross-check only.
+cmbs_name_patterns:
+  - "commercial mortgage"
+  - "mortgage trust"
+  - "mortgage securities trust"
+  - "^bank5? \\d{4}-"
+  - "^benchmark \\d{4}-"
+  - "^bbcms"
+  - "^csail"
+  - "^comm \\d{4}-"
+  - "^cd \\d{4}-"
+  - "^cfcre"
+  - "^dbjpm"
+  - "^msbam"
+  - "^bmo \\d{4}-"
+  - "^csmc"
+  - "^3650r"
+  - "^mswf"
+  - "morgan stanley capital i trust"
+  - "merrill lynch trust"
+
+# Words dropped when deriving a deal family from a trust name.
+family_stopwords: [commercial, mortgage, mortgages, trust, securities, pass, through, certificates, series, inc, llc, the]
+
+# Normalized-name -> family code. Anything not listed keeps its normalized name.
+family_aliases:
+  "WELLS FARGO": WFCM
+  "WF": WFCM
+  "MORGAN STANLEY CAPITAL I": MSC
+  "MORGAN STANLEY BANK OF AMERICA MERRILL LYNCH": MSBAM
+  "MSBAM": MSBAM
+  "GS": GSMS
+  "CITIGROUP": CGCMT
+  "J P MORGAN CHASE": JPMCC
+  "JP MORGAN CHASE": JPMCC
+  "JPMCC": JPMCC
+  "UBS": UBS
+  "BBCMS": BBCMS
+  "BARCLAYS": BBCMS
+  "BENCHMARK": BENCHMARK
+  "BANK": BANK
+  "BANK5": BANK5
+  "BANK OF AMERICA MERRILL LYNCH": BANK   # 2017-BNK3 filed under the old shelf name
+  "D2 NATIXIS MULTIFAMILY": D2-NATIXIS
+  "JPMF1 MULTIFAMILY": JPMF1
+  "CSAIL": CSAIL
+  "COMM": COMM
+  "CD": CD
+  "CFCRE": CFCRE
+  "DBJPM": DBJPM
+  "JPMBB": JPMBB
+  "JPMDB": JPMDB
+  "BMO": BMO
+  "3650R": 3650R
+  "MSWF": MSWF
+  "CSMC": CSMC

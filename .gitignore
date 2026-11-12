@@ -1,0 +1,21 @@
+# Data never goes in git: raw XML, parsed parquet, logs, request logs
+data/
+*.log
+*.jsonl
+.env
+.env.*
+
+# Python
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+*.egg-info/
+build/
+dist/
+
+# OS / editor
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/

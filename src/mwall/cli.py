@@ -1,0 +1,108 @@
+"""Command-line entry point: ``python -m mwall <stage>``.
+
+Stages map to the Makefile targets. Every stage is resumable.
+"""
+from __future__ import annotations
+
+import argparse
+import sys
+import time
+
+
+def _log(msg: str) -> None:
+    print(f"[{time.strftime('%H:%M:%S')}] {msg}", flush=True)
+
+
+def cmd_index(args) -> None:
+    from mwall.ingest import form_index
+    from mwall.ingest.sec_client import SecClient
+
+    df = form_index.build(SecClient(rate=args.rate))
+    _log(f"form index rows kept: {len(df):,}; forms: {df['form'].value_counts().to_dict()}")
+
+
+def cmd_discover(args) -> None:
+    import pandas as pd
+
+    from mwall.common import paths
+    from mwall.ingest import discover
+    from mwall.ingest.sec_client import SecClient
+
+    idx = pd.read_parquet(paths.META_DIR / "form_index_abs.parquet")
+    if not args.report_only:
+        discover.probe_candidates(SecClient(rate=args.rate), idx, workers=args.workers, log=_log)
+    trusts = discover.build_trusts(idx)
+    _log(f"confirmed CMBS trusts: {len(trusts)}")
+    _log(trusts.groupby("vintage").size().to_string())
+
+
+def cmd_filings(args) -> None:
+    from mwall.ingest import filings
+    from mwall.ingest.sec_client import SecClient
+
+    filings.run(SecClient(rate=args.rate), workers=args.workers, log=_log, limit=args.limit)
+
+
+def cmd_download(args) -> None:
+    from mwall.ingest import download
+    from mwall.ingest.sec_client import SecClient
+
+    download.run(SecClient(rate=args.rate), workers=args.workers, log=_log,
+                 budget_s=args.budget_s, ciks=args.cik, max_filings=args.max_filings)
+
+
+def cmd_census(args) -> None:
+    from mwall.parse import census
+
+    census.run(sample_per_group=args.per_group, log=_log)
+
+
+def cmd_parse(args) -> None:
+    from mwall.parse import write
+
+    write.run(log=_log, workers=args.workers, ciks=args.cik)
+
+
+def main(argv: list[str] | None = None) -> None:
+    p = argparse.ArgumentParser(prog="mwall")
+    sub = p.add_subparsers(dest="cmd", required=True)
+
+    s = sub.add_parser("index", help="download EDGAR quarterly indexes, keep 10-D and ABS-EE rows")
+    s.add_argument("--rate", type=float, default=6.0)
+    s.set_defaults(func=cmd_index)
+
+    s = sub.add_parser("discover", help="probe ABS-EE filers' EX-102 namespace; write trusts table")
+    s.add_argument("--rate", type=float, default=6.0)
+    s.add_argument("--workers", type=int, default=4)
+    s.add_argument("--report-only", action="store_true")
+    s.set_defaults(func=cmd_discover)
+
+    s = sub.add_parser("filings", help="enumerate 10-D/ABS-EE filings per trust from submissions JSON")
+    s.add_argument("--rate", type=float, default=6.0)
+    s.add_argument("--workers", type=int, default=4)
+    s.add_argument("--limit", type=int, default=None)
+    s.set_defaults(func=cmd_filings)
+
+    s = sub.add_parser("download", help="download EX-102/EX-103 for every ABS-EE filing (resumable)")
+    s.add_argument("--rate", type=float, default=6.0)
+    s.add_argument("--workers", type=int, default=4)
+    s.add_argument("--budget-s", type=float, default=None, help="stop cleanly after this many seconds")
+    s.add_argument("--cik", type=int, action="append", help="restrict to these trust CIKs")
+    s.add_argument("--max-filings", type=int, default=None)
+    s.set_defaults(func=cmd_download)
+
+    s = sub.add_parser("census", help="tag census over a stratified sample of raw files")
+    s.add_argument("--per-group", type=int, default=3)
+    s.set_defaults(func=cmd_census)
+
+    s = sub.add_parser("parse", help="parse raw XML to parquet")
+    s.add_argument("--workers", type=int, default=2)
+    s.add_argument("--cik", type=int, action="append")
+    s.set_defaults(func=cmd_parse)
+
+    args = p.parse_args(argv)
+    args.func(args)
+
+
+if __name__ == "__main__":
+    main(sys.argv[1:])
