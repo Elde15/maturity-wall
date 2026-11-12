@@ -83,6 +83,12 @@ def cmd_wholeloans(args) -> None:
     whole_loans.build(log=_log)
 
 
+def cmd_geo(args) -> None:
+    from mwall.clean import geography
+
+    geography.build(budget_s=args.budget_s, log=_log)
+
+
 def cmd_crosscheck(args) -> None:
     from mwall.parse import crosscheck
 
@@ -155,6 +161,10 @@ def main(argv: list[str] | None = None) -> None:
 
     s = sub.add_parser("wholeloans", help="group pari passu pieces across trusts into whole loans")
     s.set_defaults(func=cmd_wholeloans)
+
+    s = sub.add_parser("geo", help="geocode property addresses; county and metro from Census crosswalks")
+    s.add_argument("--budget-s", type=float, default=None, help="stop sending geocoder batches after this many seconds")
+    s.set_defaults(func=cmd_geo)
 
     s = sub.add_parser("crosscheck", help="compare our parser with edgartools on N filings (dev dependency)")
     s.add_argument("--n", type=int, default=20)

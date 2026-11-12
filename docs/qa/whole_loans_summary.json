@@ -1,0 +1,10 @@
+{
+  "loans": 13973,
+  "with_match_key": 12214,
+  "multi_trust_whole_loans": 933,
+  "records_in_multi_trust_whole_loans": 2560,
+  "records": 13258,
+  "pieces_matched_share": 0.7788,
+  "value_overstatement_if_summed": 1.2363,
+  "noi_overstatement_if_summed": 1.5005
+}

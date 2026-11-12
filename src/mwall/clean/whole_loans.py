@@ -16,6 +16,7 @@ docs/qa/whole_loans.md.
 from __future__ import annotations
 
 import hashlib
+import json
 
 import duckdb
 import pandas as pd
@@ -87,5 +88,15 @@ def build(log=print) -> pd.DataFrame:
         "",
     ]
     (paths.DOCS_DIR / "qa" / "whole_loans.md").write_text("\n".join(L) + "\n", encoding="utf-8")
+    summary = {
+        "loans": int(len(latest)), "with_match_key": int(ok.sum()),
+        "multi_trust_whole_loans": int((split > 1).sum()),
+        "records_in_multi_trust_whole_loans": int(len(multi)), "records": int(len(per_root)),
+        "pieces_matched_share": round(float(pieces_matched), 4),
+        "value_overstatement_if_summed": round(float(naive_val / dedup_val - 1), 4),
+        "noi_overstatement_if_summed": round(float(naive_noi / dedup_noi - 1), 4),
+    }
+    (paths.DOCS_DIR / "qa" / "whole_loans_summary.json").write_text(json.dumps(summary, indent=2) + "\n",
+                                                                    encoding="utf-8")
     log("\n".join(L[4:13]))
     return out

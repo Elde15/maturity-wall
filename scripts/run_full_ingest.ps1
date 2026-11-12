@@ -23,6 +23,7 @@ Step "tend" @("tend", "--workers", "8", "--rate", "7")
 Step "parse" @("parse", "--workers", "3")
 Step "clean" @("clean", "--workers", "3")
 Step "wholeloans" @("wholeloans")
+Step "geo" @("geo")
 Step "census" @("census", "--per-group", "3")
 Step "qa" @("qa")
 Add-Content $log "[$(Get-Date -Format s)] CHAIN DONE"

@@ -12,6 +12,7 @@ This repo answers that from the loan-level data that registered CMBS trusts file
 - **Filings.** 23,970 monthly asset-data filings, parsed by our own streaming parser built from the SEC's XSD. On a 20-filing cross-check against edgartools, 177,480 shared fields matched with zero differences.
 - **A loan is not a row.** Filers use at least six record layouts. In one, every property of a 39-property loan repeats the full $72.2M balance; summing rows would count it 39 times. `src/mwall/clean/structure.py` resolves each layout, and five hand-checked golden filings pin the behavior down in `tests/`.
 - **Pari passu pieces.** Property NOI and debt service cover the whole loan while the trust reports only its piece, so ratios are computed on an estimated whole-loan balance. Whole loans held by one trust come out at a median trust share of 1.000, which is the check that the estimate works. Summing collateral across trusts without grouping pieces would overstate NOI by roughly 150%.
+- **Geography.** Every property address gets a county and metro from the Census Geocoder and published crosswalks, never from a ZIP prefix: 42% of California addresses with ZIPs 900 to 935 sit outside the Los Angeles metro.
 - **Reconciliation.** Pool balances tie to the certificate administrator's 10-D statement. For BANK 2017-BNK4, January 2024, they agree to the cent ($859,864,958.46).
 
 QA reports live in `docs/qa/`.
@@ -34,6 +35,7 @@ uv run python -m mwall index && uv run python -m mwall discover && uv run python
 uv run python -m mwall download    # resumable; stays under SEC's 10 requests/second
 uv run python -m mwall tend        # 10-D statements for the balance check
 uv run python -m mwall parse && uv run python -m mwall clean && uv run python -m mwall wholeloans
+uv run python -m mwall geo         # Census geocoder + county and metro crosswalks, cached
 uv run python -m mwall qa
 ```
 

@@ -2,10 +2,28 @@
 
 Generated 2026-11-12 by `python -m mwall qa`. Regenerate after every ingest.
 
+## Gate 1 checklist
+
+| status | item | evidence |
+| --- | --- | --- |
+| PASS | Trust universe reconciles to the name search and the form index | 381 trusts. Name search: 0 CMBS-named ABS-EE filers left unconfirmed, 5 confirmed by namespace without a CMBS-looking name. Form index vs submissions: ABS-EE 0 in index only, 9 in submissions only (0 of them 2017 or later); 10-D 0 in index only, 70 in submissions only (0 of them 2017 or later). Missing 168-trust list closed in D032. |
+| PENDING | Row counts reconcile for every filing; rejects quarantined with reasons | 21,170 of 23,970 ABS-EE filings fetched. Row counts reconcile on 1,845 of 1,845 parsed files. Rejects in `data/quarantine/parse_rejects.csv`: 0. Trusts with no parsed filing: 96. |
+| PENDING | Loan vs property records classified; loans per trust equal the issuance count less payoffs | Roll-forward (D028): 249 of 280 trusts within 2.0% unexplained exits. Layout rules and golden tests: `structure.py`, `tests/golden/`. Failing trusts: `loan_count_rollforward.csv`. |
+| PASS | Pari passu duplicates measured and handled; effect on aggregates reported | 933 whole loans held by more than one trust; 77.9% of pieces matched. Summing trusts naively would overstate appraised value by 123.6% and NOI by 150.0%. `whole_loans.md`. |
+| PENDING | Field coverage report by vintage and depositor family committed | `field_coverage_by_vintage_family.csv`; summary by filing year below. |
+| PASS | Code tables verified against the SEC specification | Code meanings parsed from the SEC XSD (`docs/sec_code_tables.md`). Loan-periods with a code outside the XSD enumerations: 0. Tags outside the XSD in the census: 0. |
+| PASS | Golden filings and library cross-check (section 7) | Five hand-checked filings across five families in `tests/`; 20-filing cross-check against edgartools in `library_crosscheck.md`. |
+| PENDING | Loan balances reconcile to the 10-D within 0.5% (section 8) | 5 trust-periods with a readable statement: 3 within 0.5%, 2 where the EX-102 leaves balances blank, 0 unexplained. Statements not yet read: 0. |
+| PASS | Recomputed DSCR matches reported for 95% of loans (section 8) | 99.7% of 53,588 loan-periods within 5%. |
+| PASS | Every flag counted in a committed report (section 8) | `qa_flags.csv` and the table below. |
+| PASS | Geography: ZIP to county and metro with a published crosswalk (section 8) | `geography.md`. |
+
+Gate 1 verdict from the data: **PENDING**. A failing item is fixed or published as a limitation, never waived silently (SOP section 15).
+
 ## Ingestion
 
 - Trusts in the universe: 381. With at least one parsed filing: 285.
-- ABS-EE filings in the universe: 23,970. Downloaded: 3,320. No EX-102 attached: 0.
+- ABS-EE filings in the universe: 23,970. Downloaded: 21,167. No EX-102 attached: 3.
 - Filings parsed: 1,845. Row counts reconcile (assets and property blocks in the XML equal rows written): 1,845 of 1,845 (100.0%).
 - Parse status: {'ok': 1845}. Type failures: 0. Tags outside the SEC schema: 0.
 - Trusts without a parsed filing yet: 96 (listed in `loan_count_rollforward.csv` once parsed; until the full download finishes most of these are simply not downloaded yet).

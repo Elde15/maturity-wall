@@ -23,6 +23,7 @@ parse:
 clean:
 	$(PY) clean
 	$(PY) wholeloans
+	$(PY) geo
 
 qa:                 ## Gate 1 reports into docs/qa
 	$(PY) census

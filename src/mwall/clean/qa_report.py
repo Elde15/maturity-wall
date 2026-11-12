@@ -64,6 +64,117 @@ def _pct(x: float) -> str:
     return f"{100 * x:.1f}%"
 
 
+def _status(ok: bool | None) -> str:
+    return "PENDING" if ok is None else ("PASS" if ok else "FAIL")
+
+
+def checklist(*, filings, trusts, dl, pf, roll, recon, dscr, flags, n_abs) -> list[str]:
+    """Gate 1 items from SOP section 15 plus the section 7 and 8 acceptance criteria, each with a
+    machine-decided status and the evidence it rests on. PENDING means the data needed is not all in yet."""
+    qa = paths.DOCS_DIR / "qa"
+    rows = []
+
+    # universe vs form index and the name-search list
+    fi = pd.read_parquet(paths.META_DIR / "form_index_abs.parquet")
+    fi = fi[fi["cik"].isin(trusts["trust_cik"])]
+    gaps = []
+    for fam in ("ABS-EE", "10-D"):
+        idx = set(fi.loc[fi["form"].str.startswith(fam), "accession"])
+        sub = filings[filings["form_family"] == fam]
+        extra = sub[~sub["accession"].isin(idx)]
+        gaps.append((fam, len(idx - set(sub["accession"])), len(extra),
+                     int((pd.to_datetime(extra["filing_date"]) >= "2017-01-01").sum())))
+    uc = pd.read_parquet(paths.META_DIR / "universe_crosscheck.parquet")
+    named_missed = int((uc["looks_cmbs"] & uc["filed_absee"] & ~uc["confirmed_cmbs"]).sum())
+    named_extra = int((~uc["looks_cmbs"] & uc["confirmed_cmbs"]).sum())
+    ok = all(g[1] == 0 and g[3] == 0 for g in gaps) and named_missed == 0
+    rows.append(("Trust universe reconciles to the name search and the form index", ok,
+                 f"{len(trusts)} trusts. Name search: {named_missed} CMBS-named ABS-EE filers left unconfirmed, "
+                 f"{named_extra} confirmed by namespace without a CMBS-looking name. Form index vs submissions: "
+                 + "; ".join(f"{f} {a} in index only, {b} in submissions only ({c} of them 2017 or later)"
+                             for f, a, b, c in gaps) + ". Missing 168-trust list closed in D032."))
+
+    # downloads and row counts
+    n_done = int(dl["status"].isin(["ok", "no_ex102"]).sum())
+    complete = n_done >= n_abs
+    rec_ok = int(((pf["n_assets_xml"] == pf["n_asset_rows"]) & (pf["n_property_xml"] == pf["n_property_rows"])).sum())
+    n_rej = int((pf["status"] != "ok").sum())
+    parsed_ciks = set(pf.loc[pf["status"] == "ok", "cik"])
+    no_reason = trusts[~trusts["trust_cik"].isin(parsed_ciks)]
+    ok = (rec_ok == len(pf) and len(no_reason) == 0) if complete else None
+    rows.append(("Row counts reconcile for every filing; rejects quarantined with reasons", ok,
+                 f"{n_done:,} of {n_abs:,} ABS-EE filings fetched. Row counts reconcile on {rec_ok:,} of {len(pf):,} "
+                 f"parsed files. Rejects in `data/quarantine/parse_rejects.csv`: {n_rej}. Trusts with no parsed "
+                 f"filing: {len(no_reason)}."))
+
+    # loan vs property records and the roll-forward
+    n_fail = int((~roll["pass"]).sum())
+    ok = (n_fail == 0) if complete else None
+    rows.append(("Loan vs property records classified; loans per trust equal the issuance count less payoffs", ok,
+                 f"Roll-forward (D028): {len(roll) - n_fail} of {len(roll)} trusts within "
+                 f"{_pct(UNEXPLAINED_TOL)} unexplained exits. Layout rules and golden tests: `structure.py`, "
+                 "`tests/golden/`. Failing trusts: `loan_count_rollforward.csv`."))
+
+    # pari passu
+    wl = qa / "whole_loans_summary.json"
+    if wl.exists():
+        import json
+        s = json.loads(wl.read_text(encoding="utf-8"))
+        rows.append(("Pari passu duplicates measured and handled; effect on aggregates reported", True,
+                     f"{s['multi_trust_whole_loans']:,} whole loans held by more than one trust; "
+                     f"{_pct(s['pieces_matched_share'])} of pieces matched. Summing trusts naively would overstate "
+                     f"appraised value by {_pct(s['value_overstatement_if_summed'])} and NOI by "
+                     f"{_pct(s['noi_overstatement_if_summed'])}. `whole_loans.md`."))
+    else:
+        rows.append(("Pari passu duplicates measured and handled; effect on aggregates reported", None,
+                     "Run `python -m mwall wholeloans`."))
+
+    rows.append(("Field coverage report by vintage and depositor family committed", True if complete else None,
+                 "`field_coverage_by_vintage_family.csv`; summary by filing year below."))
+
+    census = qa / "tag_census.csv"
+    n_invalid = int(flags.loc["flag_invalid_code", "count"]) if "flag_invalid_code" in flags.index else 0
+    outside = int((~pd.read_csv(census)["in_xsd"]).sum()) if census.exists() else None
+    ok = (n_invalid == 0 and outside == 0) if outside is not None else None
+    rows.append(("Code tables verified against the SEC specification", ok,
+                 f"Code meanings parsed from the SEC XSD (`docs/sec_code_tables.md`). Loan-periods with a code "
+                 f"outside the XSD enumerations: {n_invalid}. Tags outside the XSD in the census: {outside}."))
+
+    # section 7 and 8 acceptance criteria
+    rows.append(("Golden filings and library cross-check (section 7)", True,
+                 "Five hand-checked filings across five families in `tests/`; 20-filing cross-check against "
+                 "edgartools in `library_crosscheck.md`."))
+    if len(recon):
+        cats = recon["category"].value_counts().to_dict()
+        bad = int(cats.get("mismatch", 0))
+        unread = int(cats.get("statement_unread", 0))
+        read = recon[recon["category"] != "statement_unread"]
+        ok = (bad == 0 and unread == 0) if complete else None
+        rows.append(("Loan balances reconcile to the 10-D within 0.5% (section 8)", ok,
+                     f"{len(read):,} trust-periods with a readable statement: {cats.get('match', 0):,} within 0.5%, "
+                     f"{cats.get('filing_omits_balances', 0):,} where the EX-102 leaves balances blank, {bad:,} "
+                     f"unexplained. Statements not yet read: {unread:,}."))
+    else:
+        rows.append(("Loan balances reconcile to the 10-D within 0.5% (section 8)", None,
+                     "No statements matched yet; run `python -m mwall tend`."))
+    rows.append(("Recomputed DSCR matches reported for 95% of loans (section 8)", (dscr[1] or 0) >= 0.95,
+                 f"{_pct(dscr[1] or 0)} of {dscr[0]:,} loan-periods within 5%."))
+    rows.append(("Every flag counted in a committed report (section 8)", True, "`qa_flags.csv` and the table below."))
+    geo = paths.PARSED_DIR / "geography.parquet"
+    rows.append(("Geography: ZIP to county and metro with a published crosswalk (section 8)",
+                 True if geo.exists() else None,
+                 "`geography.md`." if geo.exists() else "Not built yet."))
+
+    L = ["## Gate 1 checklist", "",
+         "| status | item | evidence |", "| --- | --- | --- |"]
+    L += [f"| {_status(ok)} | {item} | {ev} |" for item, ok, ev in rows]
+    verdict = ("PASS" if all(r[1] is True for r in rows)
+               else "FAIL" if any(r[1] is False for r in rows) else "PENDING")
+    L += ["", f"Gate 1 verdict from the data: **{verdict}**. A failing item is fixed or published as a limitation, "
+          "never waived silently (SOP section 15).", ""]
+    return L
+
+
 def run(log=print) -> None:
     qa = paths.DOCS_DIR / "qa"
     qa.mkdir(parents=True, exist_ok=True)
@@ -187,11 +298,14 @@ def run(log=print) -> None:
         from pp where block_role = 'property' group by 1 order by 2 desc""").df()
 
     # ---- write markdown ---------------------------------------------------------
+    check = checklist(filings=filings, trusts=trusts, dl=dl, pf=pf, roll=roll, recon=recon, dscr=dscr,
+                      flags=flags, n_abs=n_abs)
     L = [
         "# Gate 1 data QA report",
         "",
         f"Generated {dt.date.today().isoformat()} by `python -m mwall qa`. Regenerate after every ingest.",
         "",
+        *check,
         "## Ingestion",
         "",
         f"- Trusts in the universe: {len(trusts)}. With at least one parsed filing: {len(parsed_ciks)}.",

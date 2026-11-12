@@ -49,3 +49,21 @@ Every element of the SEC CMBS asset-data schema keeps its XML name, so any value
 | `property_key` | trust_cik:root-child-property_seq |
 | `occupancy_current`, `occupancy_securitization` | Normalized to a fraction (D023) |
 | `property_group` | As for loans |
+
+## Geography (`parsed/geography.parquet`, one row per distinct address)
+
+Join from a property record on `addr_key(propertyAddress, propertyCity, propertyState, propertyZip)` and from a loan on `addr_key(prop_address, prop_city, prop_state, prop_zip)` (the largest property), both in `mwall.clean.geography`.
+
+| Field | Definition |
+| --- | --- |
+| `addr_key` | First 16 hex characters of SHA-1 over upper-cased, space-collapsed address, city, state and 5-digit ZIP |
+| `zip5` | ZIP normalized to five digits; a 4-digit ZIP gets its leading zero back |
+| `lat`, `lon` | Census Geocoder point; null unless the match lies in the filer's state or the ZIP's state |
+| `gc_status`, `gc_match_type` | Geocoder result (`Match`, `No_Match`, `Tie`, `Skipped` for no street) and `Exact` or `Non_Exact` |
+| `county_fips` | 5-digit county FIPS (2023 county equivalents; Connecticut planning regions) |
+| `county_source` | `geocoder`, `reported_name`, `zip_crosswalk` or `none` (D034) |
+| `zip_county_share` | Share of the ZIP's land area in its assigned county (ZIP crosswalk) |
+| `cbsa_code`, `cbsa_title`, `cbsa_type` | OMB July 2023 metro or micro area; `cbsa_type` is `metro`, `micro`, or `none` for a county outside any CBSA |
+| `metro_division_code`, `metro_division_title` | Metropolitan division where the metro has them (Los Angeles: 31084 Los Angeles-Long Beach-Glendale, 11244 Anaheim-Santa Ana-Irvine) |
+| `csa_code`, `csa_title` | Combined statistical area |
+| `flag_geocode_other_state` | Geocoder match outside both the filer's state and the ZIP's state; discarded |
