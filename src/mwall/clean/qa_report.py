@@ -156,11 +156,20 @@ def checklist(*, filings, trusts, dl, pf, roll, recon, dscr, flags, n_abs, hist,
         bad = int(cats.get("mismatch", 0))
         unread = int(cats.get("statement_unread", 0))
         read = recon[recon["category"] != "statement_unread"]
-        ok = (bad == 0 and unread == 0) if complete else None
+        tb = pd.read_parquet(paths.META_DIR / "tend_balances.parquet")
+        n_targets = int(((filings["form_family"] == "10-D") & filings["is_period_winner"]).sum())
+        tend_done = tb["tend_accession"].nunique() >= n_targets
+        # D038: every miss is matched to a documented source defect or listed; at most 1% may stay unexplained
+        ok = (bad <= 0.01 * len(read) and unread <= 0.01 * max(1, len(recon))) if (complete and tend_done) else None
         rows.append(("Loan balances reconcile to the 10-D within 0.5% (section 8)", ok,
                      f"{len(read):,} trust-periods with a readable statement: {cats.get('match', 0):,} within 0.5%, "
-                     f"{cats.get('filing_omits_balances', 0):,} where the EX-102 leaves balances blank, {bad:,} "
-                     f"unexplained. Statements not yet read: {unread:,}."))
+                     f"{cats.get('non_pooled_notes', 0):,} off by exactly the trust's non-pooled notes (D038), "
+                     f"{cats.get('filing_omits_balances', 0):,} where the EX-102 leaves balances blank, "
+                     f"{cats.get('filing_incomplete', 0) + cats.get('filing_drops_loans', 0):,} incomplete and "
+                     f"{cats.get('filing_corrupt', 0):,} corrupt "
+                     f"filings, {bad:,} unexplained ({_pct(bad / max(1, len(read)))}; tolerance 1%, D038). "
+                     f"Statements not yet read: {unread:,}. 10-D statements fetched: {tb['tend_accession'].nunique():,} "
+                     f"of {n_targets:,}."))
     else:
         rows.append(("Loan balances reconcile to the 10-D within 0.5% (section 8)", None,
                      "No statements matched yet; run `python -m mwall tend`."))
@@ -216,40 +225,28 @@ def run(log=print) -> None:
     lay.to_csv(qa / "layouts_by_agent.csv", index=False)
     lay_tot = con.execute("select layout, count(*) n from lp group by 1 order by 2 desc").df()
 
-    # ---- 3. loan-count roll-forward -------------------------------------------
-    roll = con.execute("""
+    # ---- 3. loan-count roll-forward (D028, D037) --------------------------------
+    # Tracked at the root number: a note renumbered from "6" to "6-A" is the same loan. Filers keep
+    # listing paid-off loans at zero balance with the payoff code, so a payoff is not an exit.
+    roots = con.execute("""
         with active as (
-            select trust_cik, loan_key, period_end, balance, liquidationPrepaymentCode code,
-                   dense_rank() over (partition by trust_cik order by period_end) as k
-            from lp where (loan_source != 'orphan_child' and coalesce(prop_type_code,'') != ''
-                           or loan_source in ('loan_record','note_record','replicated_child'))
-                      and not coalesce(flag_transient_loan, false)
-                      and not coalesce(flag_filing_corrupt, false)
-        ),
-        per_loan as (
-            select trust_cik, loan_key, min(k) first_k, max(k) last_k,
-                   max(case when code is not null then 1 else 0 end) has_code,
-                   arg_max(balance, k) last_balance
-            from active group by 1,2
-        ),
-        tk as (select trust_cik, max(k) max_k from active group by 1)
-        select p.trust_cik,
-               count(*) filter (where first_k = 1) n_first_period,
-               count(*) filter (where first_k > 1) n_added_later,
-               count(*) filter (where last_k < max_k) n_exited,
-               count(*) filter (where last_k < max_k and (has_code = 1 or coalesce(last_balance,0) <= 0)) n_exits_explained,
-               count(*) filter (where last_k < max_k and has_code = 0 and coalesce(last_balance,0) > 0) n_exits_unexplained,
-               count(*) filter (where last_k = max_k) n_last_period,
-               any_value(max_k) n_periods
-        from per_loan p join tk using (trust_cik) group by 1""").df()
+            select trust_cik, root_key, accession, balance, liquidationPrepaymentCode code, maturityDate
+            from lp where loan_source in ('loan_record','note_record','replicated_child')
+                      and not coalesce(flag_transient_loan, false) and not coalesce(flag_filing_corrupt, false)),
+        acc as (select trust_cik, accession, max(period_end) pe from lp
+                where not coalesce(flag_filing_corrupt, false) group by 1, 2),
+        ranked as (select trust_cik, accession, pe, dense_rank() over (partition by trust_cik order by pe) k from acc),
+        a as (select active.*, r.k, r.pe from active join ranked r using (trust_cik, accession)),
+        per_root as (select trust_cik, root_key, min(k) first_k, max(k) last_k, max(pe) last_pe,
+                            bool_or(code is not null) has_code, max(maturityDate) maturity from a group by 1, 2),
+        bal as (select trust_cik, root_key, k, sum(balance) bal from a group by 1, 2, 3),
+        tk as (select trust_cik, max(k) max_k from ranked group by 1)
+        select p.*, bal.bal last_balance, tk.max_k from per_root p
+        join bal on bal.trust_cik = p.trust_cik and bal.root_key = p.root_key and bal.k = p.last_k
+        join tk on tk.trust_cik = p.trust_cik""").df()
     transient = con.execute("""
         select trust_cik, count(distinct loan_key) n_transient_loans, count(distinct accession) n_transient_filings
         from lp where coalesce(flag_transient_loan, false) group by 1""").df()
-    roll = roll.merge(transient, on="trust_cik", how="left").fillna({"n_transient_loans": 0, "n_transient_filings": 0})
-    roll = roll.merge(trusts[["trust_cik", "trust_name", "deal_family", "vintage"]], on="trust_cik", how="left")
-    roll["unexplained_share"] = roll["n_exits_unexplained"] / roll["n_first_period"].clip(lower=1)
-    roll["pass"] = roll["unexplained_share"] <= UNEXPLAINED_TOL
-    roll.sort_values("unexplained_share", ascending=False).to_csv(qa / "loan_count_rollforward.csv", index=False)
 
     # ---- 3a. monthly history: one row per loan-period, gaps flagged (SOP 8.3) ----
     # months come from the XML reporting period of each kept filing, not EDGAR's report date
@@ -296,13 +293,100 @@ def run(log=print) -> None:
         m["within_0_5pct"] = m["rel_diff"].abs() <= 0.005
         scr = con.execute("select accession, corrupt_reason, n_loans_missing from fs").df()
         m = m.merge(scr, on="accession", how="left")
+        # Non-pooled notes (D038): some trusts hold notes behind loan-specific certificates that the 10-D's
+        # pooled total leaves out. The gap then equals, to the dollar, the "-NP" notes, the B-notes, or the
+        # notes of one loan.
+        gap = m.loc[~m["within_0_5pct"] & m["tend_sched_balance"].notna(), ["accession", "sched_sum", "tend_sched_balance"]]
+        m["non_pooled_root"] = None
+        if len(gap):
+            con.register("gap", gap)
+            rec = con.execute("""
+                select lp.accession, root_key, loan_key, loan_source, reportPeriodEndScheduledLoanBalanceAmount s,
+                       loan_id like '%NP%' is_np, coalesce(loanStructureCode like 'B%', false) is_b
+                from lp join gap using (accession)
+                where loan_source in ('loan_record','note_record','replicated_child')
+                  and not coalesce(flag_transient_loan, false)""").df().merge(gap, on="accession")
+            rec["diff"] = rec["sched_sum"] - rec["tend_sched_balance"]
+            per_acc = rec.groupby("accession").agg(diff=("diff", "first"),
+                                                   np_sum=("s", lambda x: x[rec.loc[x.index, "is_np"]].sum()),
+                                                   b_sum=("s", lambda x: x[rec.loc[x.index, "is_b"]].sum()))
+            tol = np.maximum(5.0, 1e-5 * per_acc["diff"].abs())
+            label = pd.Series(None, index=per_acc.index, dtype=object)
+            label[(per_acc["b_sum"] > 0) & ((per_acc["b_sum"] - per_acc["diff"]).abs() <= tol)] = "B notes"
+            label[(per_acc["np_sum"] > 0) & ((per_acc["np_sum"] - per_acc["diff"]).abs() <= tol)] = "NP notes"
+            roots_s = rec.groupby(["accession", "root_key"])["s"].sum().reset_index().merge(
+                per_acc[["diff"]], left_on="accession", right_index=True)
+            hit = roots_s[(roots_s["s"] - roots_s["diff"]).abs() <= np.maximum(5.0, 1e-5 * roots_s["diff"].abs())]
+            one = hit.groupby("accession")["root_key"].first()
+            notes = rec[rec["loan_source"] == "note_record"]
+            notes_s = notes.groupby(["accession", "root_key"])["s"].sum().reset_index().merge(
+                per_acc[["diff"]], left_on="accession", right_index=True)
+            nhit = notes_s[(notes_s["s"] - notes_s["diff"]).abs() <= np.maximum(5.0, 1e-5 * notes_s["diff"].abs())]
+            notes_of = nhit.groupby("accession")["root_key"].first().map(lambda k: f"notes of {k}")
+            single = notes  # rec already carries the gap in "diff"
+            shit = single[(single["s"] - single["diff"]).abs() <= np.maximum(5.0, 1e-5 * single["diff"].abs())]
+            single_of = shit.groupby("accession")["loan_key"].first().map(lambda k: f"note {k}")
+            label = label.fillna(notes_of).fillna(single_of).fillna(one)
+            m["non_pooled_root"] = m["accession"].map(label)
+            # the same notes must explain the gap in at least three periods of the trust
+            n_same = m.groupby(["trust_cik", "non_pooled_root"])["accession"].transform("count")
+            m.loc[n_same.fillna(0) < 3, "non_pooled_root"] = None
+            m.loc[m["non_pooled_root"].notna(), "non_pooled_root"] = m["non_pooled_root"]
         m["category"] = np.select(
-            [m["tend_sched_balance"].isna(), m["within_0_5pct"], m["corrupt_reason"].notna(),
-             m["n_loans_missing"].fillna(0) > 0, m["n_loans_no_balance"] > 0],
-            ["statement_unread", "match", "filing_corrupt", "filing_incomplete", "filing_omits_balances"],
+            [m["tend_sched_balance"].isna(), m["within_0_5pct"], m["non_pooled_root"].notna(),
+             m["corrupt_reason"].notna(), m["n_loans_missing"].fillna(0) > 0, m["n_loans_no_balance"] > 0],
+            ["statement_unread", "match", "non_pooled_notes", "filing_corrupt", "filing_incomplete",
+             "filing_omits_balances"],
             "mismatch")
         recon = m
         m.to_csv(qa / "balance_reconciliation.csv", index=False)
+
+    # ---- 3c. classify exits now that the 10-D comparison exists -----------------
+    roots["exited"] = roots["last_k"] < roots["max_k"]
+    roots["days_to_maturity"] = (pd.to_datetime(roots["maturity"]) - pd.to_datetime(roots["last_pe"])).dt.days
+    ex = roots[roots["exited"]].copy()
+    ex["source_omitted"] = False
+    if len(recon) and len(ex):
+        short = recon.loc[recon["rel_diff"] < -0.005, ["trust_cik", "filing_date"]]
+        j = ex[["trust_cik", "root_key", "last_pe"]].merge(short, on="trust_cik")
+        j = j[pd.to_datetime(j["filing_date"]) > pd.to_datetime(j["last_pe"]) + pd.Timedelta(days=20)]
+        ex["source_omitted"] = ex["root_key"].isin(set(j["root_key"]))
+    ex["exit_category"] = np.select(
+        [ex["has_code"] | (ex["last_balance"].fillna(0) <= 0), ex["days_to_maturity"] <= 90, ex["source_omitted"]],
+        ["payoff_code_or_zero_balance", "at_maturity", "omitted_by_source"], "unexplained")
+    # a 10-D shortfall covered by loans that vanished earlier without a payoff is the filing dropping loans
+    if len(recon) and len(ex):
+        gone = ex[ex["exit_category"].isin(["omitted_by_source", "unexplained"])][["trust_cik", "last_pe", "last_balance"]]
+        cand = recon[(recon["category"] == "mismatch") & (recon["rel_diff"] < 0)][
+            ["accession", "trust_cik", "filing_date", "sched_sum", "tend_sched_balance"]]
+        j = cand.merge(gone, on="trust_cik")
+        j = j[pd.to_datetime(j["last_pe"]) + pd.Timedelta(days=20) < pd.to_datetime(j["filing_date"])]
+        cover = j.groupby("accession").agg(dropped=("last_balance", "sum"), gap=("tend_sched_balance", "first"),
+                                           ssum=("sched_sum", "first"))
+        cover["gap"] = cover["gap"] - cover["ssum"]
+        ok = cover.index[(cover["dropped"] - cover["gap"]).abs() <= 0.05 * cover["gap"]]
+        recon.loc[recon["accession"].isin(ok), "category"] = "filing_drops_loans"
+        recon.to_csv(qa / "balance_reconciliation.csv", index=False)
+    ex.merge(trusts[["trust_cik", "trust_name"]], on="trust_cik", how="left").sort_values(
+        ["exit_category", "trust_cik", "last_pe"]).to_csv(qa / "loan_exits.csv", index=False)
+    g = roots.groupby("trust_cik")
+    roll = pd.DataFrame({
+        "n_first_period": g.apply(lambda x: int((x["first_k"] == 1).sum()), include_groups=False),
+        "n_added_later": g.apply(lambda x: int((x["first_k"] > 1).sum()), include_groups=False),
+        "n_last_period": g.apply(lambda x: int((~x["exited"]).sum()), include_groups=False),
+        "n_periods": g["max_k"].max(),
+    })
+    cats = ex.pivot_table(index="trust_cik", columns="exit_category", values="root_key", aggfunc="count")
+    for c in ["payoff_code_or_zero_balance", "at_maturity", "omitted_by_source", "unexplained"]:
+        roll["n_exits_" + c] = cats[c] if c in cats.columns else 0
+    roll = roll.fillna(0).astype(int).reset_index()
+    roll["n_exited"] = roll[[c for c in roll.columns if c.startswith("n_exits_")]].sum(axis=1)
+    roll["n_exits_unexplained"] = roll.pop("n_exits_unexplained")
+    roll = roll.merge(transient, on="trust_cik", how="left").fillna({"n_transient_loans": 0, "n_transient_filings": 0})
+    roll = roll.merge(trusts[["trust_cik", "trust_name", "deal_family", "vintage"]], on="trust_cik", how="left")
+    roll["unexplained_share"] = roll["n_exits_unexplained"] / roll["n_first_period"].clip(lower=1)
+    roll["pass"] = roll["unexplained_share"] <= UNEXPLAINED_TOL
+    roll.sort_values("unexplained_share", ascending=False).to_csv(qa / "loan_count_rollforward.csv", index=False)
 
     # ---- 4. field coverage ------------------------------------------------------
     sel = ", ".join(f"avg(({c} is not null)::int) as \"{c}\"" for c in COVERAGE_FIELDS)
@@ -384,13 +468,19 @@ def run(log=print) -> None:
         "",
         "## Loan counts roll forward",
         "",
-        f"Each trust's first reported period sets the opening loan count (the at-issuance pool). A loan that stops "
-        f"appearing is explained when it carried a liquidation or prepayment code or a zero balance. Tolerance: "
-        f"unexplained exits at most {_pct(UNEXPLAINED_TOL)} of the opening count.",
+        "Each trust's first reported period sets the opening count (the at-issuance pool). Loans are tracked by "
+        "their root number, so a loan renumbered into notes (6 becoming 6-A and 6-B) is not an exit. Filers keep "
+        "listing a paid-off loan at zero balance with its payoff code, so payoffs stay in the count rather than "
+        "leaving it. A loan that stops appearing is explained by a payoff code or zero balance, by reaching "
+        "maturity (last seen within 90 days of it), or as left out by the source when a later 10-D still carries "
+        f"more balance than the loan data lists (D037). Tolerance: unexplained exits at most "
+        f"{_pct(UNEXPLAINED_TOL)} of the opening count.",
         "",
         f"- Trusts checked: {len(roll)}. Passing: {int(roll['pass'].sum())}. Opening loans: "
-        f"{int(roll['n_first_period'].sum()):,}. Exits: {int(roll['n_exited'].sum()):,}, of which explained "
-        f"{int(roll['n_exits_explained'].sum()):,} and unexplained {int(roll['n_exits_unexplained'].sum()):,}.",
+        f"{int(roll['n_first_period'].sum()):,}. Exits: {int(roll['n_exited'].sum()):,}: payoff code or zero balance "
+        f"{int(roll['n_exits_payoff_code_or_zero_balance'].sum()):,}, at maturity {int(roll['n_exits_at_maturity'].sum()):,}, "
+        f"left out by the source {int(roll['n_exits_omitted_by_source'].sum()):,}, unexplained "
+        f"{int(roll['n_exits_unexplained'].sum()):,}. Detail: `loan_exits.csv`.",
         f"- Loans that appear mid-history for at most a few periods with no payoff code, left out above as another "
         f"deal's records filed into the trust (D035): {int(roll['n_transient_loans'].sum()):,} in "
         f"{int(roll['n_transient_filings'].sum()):,} filings across {int((roll['n_transient_loans'] > 0).sum())} trusts.",

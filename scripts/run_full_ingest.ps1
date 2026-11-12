@@ -13,7 +13,8 @@ $log = Join-Path $state "chain.log"
 Set-Location $repo
 function Step($name, $argList) {
     Add-Content $log "[$(Get-Date -Format s)] START $name"
-    & $py -u -W ignore -m mwall @argList *>> $log
+    # Out-File keeps the log UTF-8; PowerShell 5.1 redirection (*>>) would write UTF-16 into it
+    & $py -u -W ignore -m mwall @argList *>&1 | Out-File -FilePath $log -Append -Encoding utf8
     Add-Content $log "[$(Get-Date -Format s)] END $name (exit $LASTEXITCODE)"
 }
 $dl = Get-CimInstance Win32_Process -Filter "Name='python.exe'" | Where-Object { $_.CommandLine -like '*mwall download*' }
