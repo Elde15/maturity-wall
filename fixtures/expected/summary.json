@@ -1,0 +1,114 @@
+{
+  "0001056404-21-000317": {
+    "fin_basis": {
+      "annualized": 30,
+      "full_year": 3
+    },
+    "flags": {
+      "flag_mixed_fin_periods": 2,
+      "flag_noi_missing": 2,
+      "flag_valuation_old": 1
+    },
+    "layouts": {
+      "nested": 2,
+      "single": 31
+    },
+    "loans": 33,
+    "noi_annual": 176121908.8,
+    "properties": 73,
+    "scheduled_balance": 949434984.68
+  },
+  "0001056404-21-000844": {
+    "fin_basis": {
+      "full_year": 9,
+      "unknown": 1,
+      "ytd": 41
+    },
+    "flags": {
+      "flag_noi_missing": 1,
+      "flag_noi_stale": 1
+    },
+    "layouts": {
+      "notes": 5,
+      "parent_children": 5,
+      "single": 41
+    },
+    "loans": 51,
+    "noi_annual": 222998260.34,
+    "properties": 64,
+    "scheduled_balance": 980639232.19
+  },
+  "0001539497-17-000524": {
+    "fin_basis": {
+      "unknown": 48
+    },
+    "flags": {
+      "flag_noi_missing": 48
+    },
+    "layouts": {
+      "parent_children": 5,
+      "single": 43
+    },
+    "loans": 48,
+    "noi_annual": 0.0,
+    "properties": 64,
+    "scheduled_balance": 1008188845.0
+  },
+  "0001539497-17-000720": {
+    "fin_basis": {
+      "full_year": 11,
+      "unknown": 22
+    },
+    "flags": {
+      "flag_noi_missing": 22
+    },
+    "layouts": {
+      "parent_children": 2,
+      "single": 31
+    },
+    "loans": 33,
+    "noi_annual": 84491198.32,
+    "properties": 73,
+    "scheduled_balance": 959131420.74
+  },
+  "0001888524-26-018800": {
+    "fin_basis": {
+      "annualized": 21,
+      "full_year": 1,
+      "unknown": 11
+    },
+    "flags": {
+      "flag_noi_missing": 11,
+      "flag_valuation_old": 33
+    },
+    "layouts": {
+      "nested": 2,
+      "single": 31
+    },
+    "loans": 33,
+    "noi_annual": 141564697.84,
+    "properties": 73,
+    "scheduled_balance": 824340210.24
+  },
+  "0001888524-26-019268": {
+    "fin_basis": {
+      "full_year": 17,
+      "unknown": 17,
+      "ytd": 20
+    },
+    "flags": {
+      "flag_noi_missing": 17,
+      "flag_noi_stale": 2,
+      "flag_valuation_old": 52
+    },
+    "layouts": {
+      "notes": 10,
+      "parent_children": 5,
+      "single": 39
+    },
+    "loans": 54,
+    "noi_annual": 192791845.24,
+    "properties": 64,
+    "scheduled_balance": 692392191.89
+  }
+}

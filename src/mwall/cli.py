@@ -77,6 +77,27 @@ def cmd_clean(args) -> None:
     run.run(log=_log, workers=args.workers, ciks=args.cik)
 
 
+def cmd_wholeloans(args) -> None:
+    from mwall.clean import whole_loans
+
+    whole_loans.build(log=_log)
+
+
+def cmd_crosscheck(args) -> None:
+    from mwall.parse import crosscheck
+
+    crosscheck.run(n=args.n, log=_log)
+
+
+def cmd_fixture(args) -> None:
+    from mwall import fixture
+
+    if args.make:
+        fixture.make()
+    ok = fixture.build(update=args.update, log=_log)
+    sys.exit(0 if ok else 1)
+
+
 def cmd_qa(args) -> None:
     from mwall.clean import qa_report
 
@@ -131,6 +152,18 @@ def main(argv: list[str] | None = None) -> None:
     s.add_argument("--workers", type=int, default=3)
     s.add_argument("--cik", type=int, action="append")
     s.set_defaults(func=cmd_clean)
+
+    s = sub.add_parser("wholeloans", help="group pari passu pieces across trusts into whole loans")
+    s.set_defaults(func=cmd_wholeloans)
+
+    s = sub.add_parser("crosscheck", help="compare our parser with edgartools on N filings (dev dependency)")
+    s.add_argument("--n", type=int, default=20)
+    s.set_defaults(func=cmd_crosscheck)
+
+    s = sub.add_parser("fixture", help="build the committed fixture dataset and compare with stored outputs")
+    s.add_argument("--make", action="store_true", help="re-copy fixture inputs from data/ (maintainer)")
+    s.add_argument("--update", action="store_true", help="overwrite the stored expected outputs")
+    s.set_defaults(func=cmd_fixture)
 
     s = sub.add_parser("qa", help="write the Gate 1 QA and field-coverage reports to docs/qa")
     s.set_defaults(func=cmd_qa)
