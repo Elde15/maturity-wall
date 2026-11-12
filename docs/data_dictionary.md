@@ -77,4 +77,5 @@ Join from a property record on `addr_key(propertyAddress, propertyCity, property
 | `cbsa_code`, `cbsa_title`, `cbsa_type` | OMB July 2023 metro or micro area; `cbsa_type` is `metro`, `micro`, or `none` for a county outside any CBSA |
 | `metro_division_code`, `metro_division_title` | Metropolitan division where the metro has them (Los Angeles: 31084 Los Angeles-Long Beach-Glendale, 11244 Anaheim-Santa Ana-Irvine) |
 | `csa_code`, `csa_title` | Combined statistical area |
+| `flag_state_inferred` | Filer wrote state "NA"; the state is taken from other records with the same city and county name, when they all agree |
 | `flag_geocode_other_state` | Geocoder match outside both the filer's state and the ZIP's state; discarded |

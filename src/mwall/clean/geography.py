@@ -280,6 +280,17 @@ def build(budget_s: float | None = None, log=print) -> pd.DataFrame:
     zc = zip_county()
     g = g.merge(zc.rename(columns={"zcta": "zip5", "county_fips": "zip_county_fips"}), on="zip5", how="left")
     names = county_names()
+    # Portfolio properties sometimes carry state "NA" with a city and county name. Where other records with
+    # the same city and county name all sit in one state, that state is used (flag_state_inferred).
+    g["_city"] = g["city"].map(_up)
+    g["_cty"] = g["county_reported"].map(_county_name)
+    known = g[g["state"].isin(STATE_FIPS) & (g["_city"] != "") & (g["_cty"] != "")]
+    one = known.groupby(["_city", "_cty"])["state"].agg(lambda x: x.iloc[0] if x.nunique() == 1 else None).dropna()
+    bad_state = ~g["state"].isin(STATE_FIPS)
+    inferred = pd.Series([one.get((c, k)) for c, k in zip(g["_city"], g["_cty"])], index=g.index)
+    g["flag_state_inferred"] = bad_state & inferred.notna()
+    g.loc[g["flag_state_inferred"], "state"] = inferred[g["flag_state_inferred"]]
+    g = g.drop(columns=["_city", "_cty"])
     g["state_fips"] = g["state"].map(STATE_FIPS)
     g["name_norm"] = g["county_reported"].map(_county_name)
     g = g.merge(names.rename(columns={"county_fips": "name_county_fips"}), on=["state_fips", "name_norm"], how="left")
@@ -310,7 +321,7 @@ def build(budget_s: float | None = None, log=print) -> pd.DataFrame:
     keep = ["addr_key", "address", "city", "state", "zip5", "county_reported", "lat", "lon", "gc_status",
             "gc_match_type", "gc_tract", "county_fips", "county_source", "zip_county_share", "cbsa_code",
             "cbsa_title", "cbsa_type", "metro_division_code", "metro_division_title", "csa_code", "csa_title",
-            "flag_geocode_other_state", "zip_agrees", "name_agrees"]
+            "flag_geocode_other_state", "flag_state_inferred", "zip_agrees", "name_agrees"]
     out = g[keep].copy()
     out.to_parquet(paths.PARSED_DIR / "geography.parquet", index=False)
     report(out, log)
@@ -340,7 +351,9 @@ def report(g: pd.DataFrame, log=print) -> None:
         f"- Distinct addresses: {n:,}. With a county: {int(g['county_fips'].notna().sum()):,} "
         f"({100 * g['county_fips'].notna().mean():.1f}%). In a metro or micro area: "
         f"{int(g['cbsa_code'].notna().sum()):,}. With a point (geocoder match): {int(g['lat'].notna().sum()):,}.",
-        f"- Geocoder matches outside the filer's own state, discarded: {int(g['flag_geocode_other_state'].sum()):,}.",
+        f"- Geocoder matches outside the filer's own state, discarded: {int(g['flag_geocode_other_state'].sum()):,}. "
+        f"State filled from other records with the same city and county name (filer wrote \"NA\"): "
+        f"{int(g['flag_state_inferred'].sum()):,}.",
         f"- Where the geocoder matched, the ZIP crosswalk names the same county {100 * zip_ag.mean():.1f}% of the time "
         f"(n={len(zip_ag):,}) and the filer's reported county name {100 * name_ag.mean():.1f}% (n={len(name_ag):,}).",
         "",

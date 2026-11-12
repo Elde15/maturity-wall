@@ -2,16 +2,16 @@
 
 Every distinct property address (from property records and the largest-property fields on loan records) gets a county and a metro (`clean/geography.py`). Sources are the Census Geocoder, the Census 2020 ZCTA-to-county relationship file (Connecticut from the 2022 planning-region file) and the OMB July 2023 metropolitan delineation. Fetch dates and hashes: `data/meta/geo/sources.json`.
 
-- Distinct addresses: 34,040. With a county: 33,496 (98.4%). In a metro or micro area: 32,510. With a point (geocoder match): 29,493.
-- Geocoder matches outside the filer's own state, discarded: 27.
-- Where the geocoder matched, the ZIP crosswalk names the same county 96.5% of the time (n=29,271) and the filer's reported county name 99.2% (n=28,360).
+- Distinct addresses: 34,040. With a county: 33,956 (99.8%). In a metro or micro area: 32,944. With a point (geocoder match): 29,515.
+- Geocoder matches outside the filer's own state, discarded: 5. State filled from other records with the same city and county name (filer wrote "NA"): 527.
+- Where the geocoder matched, the ZIP crosswalk names the same county 96.5% of the time (n=29,271) and the filer's reported county name 99.2% (n=28,420).
 
 | county source | addresses | share |
 | --- | --- | --- |
-| geocoder | 29493 | 86.6% |
-| reported_name | 3798 | 11.2% |
-| none | 544 | 1.6% |
-| zip_crosswalk | 205 | 0.6% |
+| geocoder | 29515 | 86.7% |
+| reported_name | 4244 | 12.5% |
+| zip_crosswalk | 197 | 0.6% |
+| none | 84 | 0.2% |
 
 | geocoder result | addresses |
 | --- | --- |
@@ -22,7 +22,7 @@ Every distinct property address (from property records and the largest-property 
 
 ## Why not a ZIP prefix
 
-California ZIPs starting 900 to 935 are often treated as Los Angeles. Of 1,865 such addresses here, 736 (39%) sit outside the Los Angeles-Long Beach-Anaheim metro:
+California ZIPs starting 900 to 935 are often treated as Los Angeles. Of 1,870 such addresses here, 736 (39%) sit outside the Los Angeles-Long Beach-Anaheim metro:
 
 | metro | addresses |
 | --- | --- |
