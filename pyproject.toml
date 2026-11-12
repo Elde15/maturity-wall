@@ -26,7 +26,10 @@ model = [
 ]
 
 [dependency-groups]
-dev = ["pytest>=8.3"]
+dev = [
+    "edgartools>=6.0.0",
+    "pytest>=8.3",
+]
 
 [project.scripts]
 mwall = "mwall.cli:main"
