@@ -51,6 +51,14 @@ def cmd_download(args) -> None:
                  budget_s=args.budget_s, ciks=args.cik, max_filings=args.max_filings)
 
 
+def cmd_tend(args) -> None:
+    from mwall.ingest import tend
+    from mwall.ingest.sec_client import SecClient
+
+    tend.run(SecClient(rate=args.rate), workers=args.workers, per_agent=args.per_agent,
+             budget_s=args.budget_s, log=_log)
+
+
 def cmd_census(args) -> None:
     from mwall.parse import census
 
@@ -102,6 +110,13 @@ def main(argv: list[str] | None = None) -> None:
     s.add_argument("--cik", type=int, action="append", help="restrict to these trust CIKs")
     s.add_argument("--max-filings", type=int, default=None)
     s.set_defaults(func=cmd_download)
+
+    s = sub.add_parser("tend", help="fetch 10-D distribution statements and extract pool balances")
+    s.add_argument("--rate", type=float, default=6.0)
+    s.add_argument("--workers", type=int, default=8)
+    s.add_argument("--per-agent", type=int, default=None, help="sample this many statements per filer agent")
+    s.add_argument("--budget-s", type=float, default=None)
+    s.set_defaults(func=cmd_tend)
 
     s = sub.add_parser("census", help="tag census over a stratified sample of raw files")
     s.add_argument("--per-group", type=int, default=3)

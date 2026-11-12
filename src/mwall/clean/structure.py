@@ -11,6 +11,8 @@ Layouts seen in real filings, decided per (filing, root loan number):
                    property records "15-001", "15-002" (allocated amounts)
   replicated       no loan record: every property record "4-001".. repeats the
                    full loan fields (balance, rate, status)
+  first_child      no loan record: only the first property record "8-001"
+                   carries the loan fields
   notes            split notes "4A", "4B" (each its own loan) sharing collateral,
                    with or without a plain "4" and with or without children
   orphan           property records with no loan record and no loan fields
@@ -137,7 +139,7 @@ def resolve(assets: pd.DataFrame, props: pd.DataFrame) -> tuple[pd.DataFrame, pd
         "has_parent": g["is_parent"].any(),
         "n_notes": g["is_note"].sum(),
         "n_children": g["is_child"].sum(),
-        "children_loan_fields": g.apply(lambda x: bool((x["is_child"] & x["has_loan_fields"]).any()),
+        "children_loan_fields": g.apply(lambda x: int((x["is_child"] & x["has_loan_fields"]).sum()),
                                         include_groups=False),
         "parent_blocks": g.apply(lambda x: int(x.loc[x["is_parent"], "n_property_blocks"].sum()),
                                  include_groups=False),
@@ -151,7 +153,10 @@ def resolve(assets: pd.DataFrame, props: pd.DataFrame) -> tuple[pd.DataFrame, pd
         if r.has_parent:
             return "nested" if r.parent_blocks > 1 else "single"
         if r.n_children > 0:
-            return "replicated" if r.children_loan_fields else "orphan"
+            if r.children_loan_fields == 0:
+                return "orphan"
+            # one child carrying the loan terms vs every child repeating them
+            return "first_child" if r.children_loan_fields == 1 and r.n_children > 1 else "replicated"
         return "unparsed"
 
     root_info["layout"] = root_info.apply(layout, axis=1)
@@ -164,7 +169,8 @@ def resolve(assets: pd.DataFrame, props: pd.DataFrame) -> tuple[pd.DataFrame, pd
     synth_src = a[a["is_child"] & ~a["has_parent"] & (a["n_notes"] == 0)]
     synth = synth_src.sort_values("asset_seq").groupby(["accession", "root"]).head(1).copy()
     synth["loan_id"] = synth["root"].astype(str)
-    synth["loan_source"] = np.where(synth["layout"] == "replicated", "replicated_child", "orphan_child")
+    synth["loan_source"] = np.where(synth["layout"].isin(["replicated", "first_child"]), "replicated_child",
+                                    "orphan_child")
     # consistency of the replicated loan fields across children
     if len(synth_src):
         nun = synth_src.groupby(["accession", "root"])[CONSISTENCY_KEYS].nunique(dropna=True)

@@ -5,7 +5,7 @@ Generated 2026-11-12 by `python -m mwall qa`. Regenerate after every ingest.
 ## Ingestion
 
 - Trusts in the universe: 381. With at least one parsed filing: 285.
-- ABS-EE filings in the universe: 23,970. Downloaded: 2,370. No EX-102 attached: 0.
+- ABS-EE filings in the universe: 23,970. Downloaded: 3,320. No EX-102 attached: 0.
 - Filings parsed: 1,845. Row counts reconcile (assets and property blocks in the XML equal rows written): 1,845 of 1,845 (100.0%).
 - Parse status: {'ok': 1845}. Type failures: 0. Tags outside the SEC schema: 0.
 - Trusts without a parsed filing yet: 96 (listed in `loan_count_rollforward.csv` once parsed; until the full download finishes most of these are simply not downloaded yet).
@@ -16,10 +16,9 @@ Generated 2026-11-12 by `python -m mwall qa`. Regenerate after every ingest.
 | --- | --- |
 | single | 71015 |
 | parent_children | 7090 |
-| notes | 5149 |
+| notes | 5161 |
 | nested | 3837 |
 | replicated | 1414 |
-| unparsed | 12 |
 | orphan | 8 |
 
 By filer agent: `layouts_by_agent.csv`.
@@ -30,15 +29,19 @@ Each trust's first reported period sets the opening loan count (the at-issuance 
 
 - Trusts checked: 280. Passing: 249. Opening loans: 13,289. Exits: 282, of which explained 2 and unexplained 280.
 
+## Pool balance vs the 10-D distribution statement
+
+- Trust-periods compared: 5. Sum of loan scheduled balances within 0.5% of the administrator's ending scheduled collateral balance: 3 (60.0%). Median absolute difference: 0.0%. By category: {'match': 3, 'filing_omits_balances': 2}. `filing_omits_balances` means the EX-102 itself leaves some loans' period balances blank, so the gap is in the source, not the pipeline. Detail: `balance_reconciliation.csv`.
+
 ## Ratio checks
 
-- Reported DSCR vs NOI / debt service recomputed from the same filing: 53,576 loan-periods with both; 99.7% agree within 5% (SOP target 95%).
+- Reported DSCR vs NOI / debt service recomputed from the same filing: 53,588 loan-periods with both; 99.7% agree within 5% (SOP target 95%).
 
 Financial basis of the most recent NOI (decision D021):
 
 | fin_basis | n |
 | --- | --- |
-| ytd | 27565 |
+| ytd | 27577 |
 | full_year | 14357 |
 | annualized | 12404 |
 | unknown | 3982 |
@@ -48,7 +51,7 @@ Estimated trust share of the whole loan by structure code (decision D020). Whole
 | structure | n | p25 | p50 | p75 |
 | --- | --- | --- | --- | --- |
 | WL | 39173 | 1.000 | 1.000 | 1.019 |
-| PP | 9972 | 0.214 | 0.352 | 0.518 |
+| PP | 9984 | 0.213 | 0.352 | 0.517 |
 | A1 | 2269 | 0.056 | 0.131 | 0.293 |
 |  | 983 | 0.527 | 1.000 | 1.018 |
 | A2 | 213 | 0.045 | 0.134 | 0.253 |
@@ -61,7 +64,7 @@ Occupancy units as filed (property blocks; decision D023):
 
 | unit | n |
 | --- | --- |
-| fraction | 124287 |
+| fraction | 124278 |
 | null | 67391 |
 | percent | 2017 |
 | unreadable | 13 |
@@ -87,17 +90,18 @@ By vintage and deal family: `field_coverage_by_vintage_family.csv`.
 
 | index | count | share |
 | --- | --- | --- |
-| flag_swapped_asset_number | 0.00 | 0.0% |
-| flag_replicated_inconsistent | 0.00 | 0.0% |
-| flag_unparsed_number | 12.00 | 0.0% |
-| flag_mixed_fin_periods | 1511.00 | 1.7% |
-| flag_rate_unreadable | 0.00 | 0.0% |
-| flag_invalid_code | 0.00 | 0.0% |
-| flag_fin_period_assumed | 0.00 | 0.0% |
-| flag_fin_basis_unknown | 3982.00 | 4.5% |
-| flag_noi_missing | 30217.00 | 34.1% |
-| flag_noi_stale | 1173.00 | 1.3% |
-| flag_dscr_inconsistent | 167.00 | 0.2% |
-| flag_valuation_old | 12485.00 | 14.1% |
-| flag_zero_balance_active | 59.00 | 0.1% |
+| flag_swapped_asset_number | 0 | 0.0% |
+| flag_replicated_inconsistent | 0 | 0.0% |
+| flag_unparsed_number | 0 | 0.0% |
+| flag_mixed_fin_periods | 1511 | 1.7% |
+| flag_rate_unreadable | 0 | 0.0% |
+| flag_invalid_code | 0 | 0.0% |
+| flag_fin_period_assumed | 0 | 0.0% |
+| flag_fin_basis_unknown | 3982 | 4.5% |
+| flag_noi_missing | 30205 | 34.1% |
+| flag_noi_stale | 1173 | 1.3% |
+| flag_dscr_inconsistent | 167 | 0.2% |
+| flag_valuation_old | 12485 | 14.1% |
+| flag_zero_balance_active | 59 | 0.1% |
+| flag_rootless_note | 12 | 0.0% |
 

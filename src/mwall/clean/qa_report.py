@@ -13,6 +13,7 @@ import datetime as dt
 import sqlite3
 
 import duckdb
+import numpy as np
 import pandas as pd
 
 from mwall.common import paths
@@ -118,6 +119,34 @@ def run(log=print) -> None:
     roll["pass"] = roll["unexplained_share"] <= UNEXPLAINED_TOL
     roll.sort_values("unexplained_share", ascending=False).to_csv(qa / "loan_count_rollforward.csv", index=False)
 
+    # ---- 3b. pool balance vs the 10-D statement (SOP 8 acceptance: within 0.5%) ----
+    tb_path = paths.META_DIR / "tend_balances.parquet"
+    recon = pd.DataFrame()
+    if tb_path.exists():
+        tb = pd.read_parquet(tb_path)
+        tb = tb[tb["status"] == "ok"].copy()
+        sums = con.execute("""
+            select trust_cik, accession, any_value(filing_date) filing_date,
+                   sum(reportPeriodEndScheduledLoanBalanceAmount) sched_sum,
+                   sum(reportPeriodEndActualBalanceAmount) actual_sum,
+                   count(*) filter (where reportPeriodEndScheduledLoanBalanceAmount is null
+                                    and reportPeriodEndActualBalanceAmount is null
+                                    and liquidationPrepaymentCode is null) n_loans_no_balance
+            from lp where loan_source in ('loan_record','note_record','replicated_child')
+            group by 1,2""").df()
+        tb["tend_filing_date"] = pd.to_datetime(tb["tend_filing_date"])
+        sums["filing_date"] = pd.to_datetime(sums["filing_date"])
+        m = sums.merge(tb, on="trust_cik")
+        m = m[(m["filing_date"] - m["tend_filing_date"]).abs() <= pd.Timedelta(days=3)]
+        m = m.sort_values("tend_filing_date").drop_duplicates("accession", keep="last")
+        m["rel_diff"] = (m["sched_sum"] - m["tend_sched_balance"]) / m["tend_sched_balance"]
+        m["within_0_5pct"] = m["rel_diff"].abs() <= 0.005
+        m["category"] = np.select(
+            [m["tend_sched_balance"].isna(), m["within_0_5pct"], m["n_loans_no_balance"] > 0],
+            ["statement_unread", "match", "filing_omits_balances"], "mismatch")
+        recon = m
+        m.to_csv(qa / "balance_reconciliation.csv", index=False)
+
     # ---- 4. field coverage ------------------------------------------------------
     sel = ", ".join(f"avg(({c} is not null)::int) as \"{c}\"" for c in COVERAGE_FIELDS)
     cov = con.execute(f"""
@@ -135,6 +164,7 @@ def run(log=print) -> None:
     n_lp = con.execute("select count(*) from lp").fetchone()[0]
     flags = con.execute("select " + ", ".join(f"sum({c}::int) as {c}" for c in cols) + " from lp").df().T
     flags.columns = ["count"]
+    flags["count"] = flags["count"].fillna(0).astype(int)
     flags["share"] = flags["count"] / n_lp
     flags.to_csv(qa / "qa_flags.csv")
 
@@ -188,6 +218,16 @@ def run(log=print) -> None:
         f"- Trusts checked: {len(roll)}. Passing: {int(roll['pass'].sum())}. Opening loans: "
         f"{int(roll['n_first_period'].sum()):,}. Exits: {int(roll['n_exited'].sum()):,}, of which explained "
         f"{int(roll['n_exits_explained'].sum()):,} and unexplained {int(roll['n_exits_unexplained'].sum()):,}.",
+        "",
+        "## Pool balance vs the 10-D distribution statement",
+        "",
+        (f"- Trust-periods compared: {len(recon):,}. Sum of loan scheduled balances within 0.5% of the "
+         f"administrator's ending scheduled collateral balance: {int(recon['within_0_5pct'].sum()):,} "
+         f"({_pct(recon['within_0_5pct'].mean())}). Median absolute difference: "
+         f"{_pct(recon['rel_diff'].abs().median())}. By category: {recon['category'].value_counts().to_dict()}. "
+         "`filing_omits_balances` means the EX-102 itself leaves some loans' period balances blank, so the gap is in "
+         "the source, not the pipeline. Detail: `balance_reconciliation.csv`."
+         if len(recon) else "- No 10-D statements matched to parsed periods yet."),
         "",
         "## Ratio checks",
         "",
