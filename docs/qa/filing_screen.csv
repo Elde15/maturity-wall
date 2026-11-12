@@ -1,0 +1,11 @@
+trust_cik,accession,n_exact_copies_dropped,n_split_records,n_foreign_repeats,corrupt_reason,superseded_by,n_transient_loans,n_loans_missing
+1706060,0001888524-23-001216,67,6,5,repeated asset numbers with another loan's dates,,6,0
+1714679,0001056404-19-000025,0,0,0,,,0,4
+1714679,0001056404-19-000880,0,0,0,,,0,3
+1714679,0001056404-20-000632,0,0,0,,,0,3
+1714679,0001056404-21-000743,0,0,0,,,0,2
+1714679,0001888524-22-000389,66,0,0,,,0,18
+1739423,0001056404-21-000406,78,0,0,,,0,22
+1739423,0001888524-22-000834,0,0,11,repeated asset numbers with another loan's dates,,3,0
+1787001,0001628297-26-000934,0,1,0,,,0,0
+1816861,0001888524-23-001330,0,0,0,loans from another deal present for a few periods only,,14,0

@@ -5,6 +5,7 @@
       "full_year": 3
     },
     "flags": {
+      "flag_history_gap": 33,
       "flag_mixed_fin_periods": 2,
       "flag_noi_missing": 2,
       "flag_valuation_old": 1
@@ -25,6 +26,7 @@
       "ytd": 41
     },
     "flags": {
+      "flag_history_gap": 48,
       "flag_noi_missing": 1,
       "flag_noi_stale": 1
     },
@@ -78,6 +80,7 @@
       "unknown": 11
     },
     "flags": {
+      "flag_history_gap": 33,
       "flag_noi_missing": 11,
       "flag_valuation_old": 33
     },
@@ -97,6 +100,7 @@
       "ytd": 20
     },
     "flags": {
+      "flag_history_gap": 51,
       "flag_noi_missing": 17,
       "flag_noi_stale": 2,
       "flag_valuation_old": 52

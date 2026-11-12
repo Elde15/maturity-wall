@@ -57,6 +57,13 @@ def _con() -> duckdb.DuckDBPyConnection:
     con.execute(f"create view lp as select * from read_parquet('{lp}', union_by_name=true)")
     con.execute(f"create view pp as select * from read_parquet('{pp}', union_by_name=true)")
     con.execute(f"create view t as select * from read_parquet('{(paths.META_DIR / 'trusts.parquet').as_posix()}')")
+    fs = (paths.PARSED_DIR / "filing_screen" / "*.parquet").as_posix()
+    try:
+        con.execute(f"create view fs as select * from read_parquet('{fs}', union_by_name=true)")
+    except duckdb.Error:  # clean has not written screening tables yet
+        con.execute("create view fs as select null::varchar accession, null::varchar corrupt_reason, "
+                    "0 n_exact_copies_dropped, 0 n_split_records, 0 n_foreign_repeats, 0 n_transient_loans, "
+                    "0 n_loans_missing, null::bigint trust_cik, null::varchar superseded_by where false")
     return con
 
 
@@ -68,7 +75,7 @@ def _status(ok: bool | None) -> str:
     return "PENDING" if ok is None else ("PASS" if ok else "FAIL")
 
 
-def checklist(*, filings, trusts, dl, pf, roll, recon, dscr, flags, n_abs) -> list[str]:
+def checklist(*, filings, trusts, dl, pf, roll, recon, dscr, flags, n_abs, hist, dup_rows) -> list[str]:
     """Gate 1 items from SOP section 15 plus the section 7 and 8 acceptance criteria, each with a
     machine-decided status and the evidence it rests on. PENDING means the data needed is not all in yet."""
     qa = paths.DOCS_DIR / "qa"
@@ -157,6 +164,14 @@ def checklist(*, filings, trusts, dl, pf, roll, recon, dscr, flags, n_abs) -> li
     else:
         rows.append(("Loan balances reconcile to the 10-D within 0.5% (section 8)", None,
                      "No statements matched yet; run `python -m mwall tend`."))
+    n_amend = int((filings["n_versions_for_period"] > 1).sum())
+    rows.append(("One row per loan-period, latest amendment kept, gaps flagged not filled (section 8)",
+                 dup_rows == 0,
+                 f"Duplicate loan rows within a filing (corrupt filings aside): {dup_rows}. Filings superseded by a later version of the same "
+                 f"period: {n_amend:,} rows in `filings.parquet` carry `n_versions_for_period` > 1 and only the "
+                 f"winner is parsed. Trusts with a missing month between first and last report: "
+                 f"{int((hist['missing_months'] > 0).sum())} ({int(hist['missing_months'].sum())} months; "
+                 "`history_gaps.csv`); loan rows after a gap carry `flag_history_gap`."))
     rows.append(("Recomputed DSCR matches reported for 95% of loans (section 8)", (dscr[1] or 0) >= 0.95,
                  f"{_pct(dscr[1] or 0)} of {dscr[0]:,} loan-periods within 5%."))
     rows.append(("Every flag counted in a committed report (section 8)", True, "`qa_flags.csv` and the table below."))
@@ -206,8 +221,10 @@ def run(log=print) -> None:
         with active as (
             select trust_cik, loan_key, period_end, balance, liquidationPrepaymentCode code,
                    dense_rank() over (partition by trust_cik order by period_end) as k
-            from lp where loan_source != 'orphan_child' and coalesce(prop_type_code,'') != ''
-               or loan_source in ('loan_record','note_record','replicated_child')
+            from lp where (loan_source != 'orphan_child' and coalesce(prop_type_code,'') != ''
+                           or loan_source in ('loan_record','note_record','replicated_child'))
+                      and not coalesce(flag_transient_loan, false)
+                      and not coalesce(flag_filing_corrupt, false)
         ),
         per_loan as (
             select trust_cik, loan_key, min(k) first_k, max(k) last_k,
@@ -225,10 +242,32 @@ def run(log=print) -> None:
                count(*) filter (where last_k = max_k) n_last_period,
                any_value(max_k) n_periods
         from per_loan p join tk using (trust_cik) group by 1""").df()
+    transient = con.execute("""
+        select trust_cik, count(distinct loan_key) n_transient_loans, count(distinct accession) n_transient_filings
+        from lp where coalesce(flag_transient_loan, false) group by 1""").df()
+    roll = roll.merge(transient, on="trust_cik", how="left").fillna({"n_transient_loans": 0, "n_transient_filings": 0})
     roll = roll.merge(trusts[["trust_cik", "trust_name", "deal_family", "vintage"]], on="trust_cik", how="left")
     roll["unexplained_share"] = roll["n_exits_unexplained"] / roll["n_first_period"].clip(lower=1)
     roll["pass"] = roll["unexplained_share"] <= UNEXPLAINED_TOL
     roll.sort_values("unexplained_share", ascending=False).to_csv(qa / "loan_count_rollforward.csv", index=False)
+
+    # ---- 3a. monthly history: one row per loan-period, gaps flagged (SOP 8.3) ----
+    # months come from the XML reporting period of each kept filing, not EDGAR's report date
+    hist = con.execute("""
+        with f as (select trust_cik, accession, max(period_end) pe from lp
+                   where not coalesce(flag_filing_corrupt, false) group by 1, 2),
+             m as (select trust_cik, year(pe) * 12 + month(pe) - 1 m from f where pe is not null)
+        select trust_cik, min(m) first_m, max(m) last_m, count(distinct m) n_months from m group by 1""").df()
+    hist["expected"] = hist["last_m"] - hist["first_m"] + 1
+    hist["missing_months"] = hist["expected"] - hist["n_months"]
+    hist["first"] = [f"{m // 12}-{m % 12 + 1:02d}" for m in hist["first_m"]]
+    hist["last"] = [f"{m // 12}-{m % 12 + 1:02d}" for m in hist["last_m"]]
+    hist = hist.drop(columns=["first_m", "last_m"]).merge(trusts[["trust_cik", "trust_name"]], on="trust_cik",
+                                                          how="left")
+    hist.sort_values("missing_months", ascending=False).to_csv(qa / "history_gaps.csv", index=False)
+    dup_rows = con.execute("""
+        select count(*) - count(distinct loan_key || '|' || accession) from lp
+        where not coalesce(flag_filing_corrupt, false)""").fetchone()[0]
 
     # ---- 3b. pool balance vs the 10-D statement (SOP 8 acceptance: within 0.5%) ----
     tb_path = paths.META_DIR / "tend_balances.parquet"
@@ -238,8 +277,11 @@ def run(log=print) -> None:
         tb = tb[tb["status"] == "ok"].copy()
         sums = con.execute("""
             select trust_cik, accession, any_value(filing_date) filing_date,
-                   sum(reportPeriodEndScheduledLoanBalanceAmount) sched_sum,
-                   sum(reportPeriodEndActualBalanceAmount) actual_sum,
+                   sum(reportPeriodEndScheduledLoanBalanceAmount)
+                       filter (where not coalesce(flag_transient_loan, false)) sched_sum,
+                   sum(reportPeriodEndActualBalanceAmount)
+                       filter (where not coalesce(flag_transient_loan, false)) actual_sum,
+                   count(*) filter (where coalesce(flag_transient_loan, false)) n_transient,
                    count(*) filter (where reportPeriodEndScheduledLoanBalanceAmount is null
                                     and reportPeriodEndActualBalanceAmount is null
                                     and liquidationPrepaymentCode is null) n_loans_no_balance
@@ -252,9 +294,13 @@ def run(log=print) -> None:
         m = m.sort_values("tend_filing_date").drop_duplicates("accession", keep="last")
         m["rel_diff"] = (m["sched_sum"] - m["tend_sched_balance"]) / m["tend_sched_balance"]
         m["within_0_5pct"] = m["rel_diff"].abs() <= 0.005
+        scr = con.execute("select accession, corrupt_reason, n_loans_missing from fs").df()
+        m = m.merge(scr, on="accession", how="left")
         m["category"] = np.select(
-            [m["tend_sched_balance"].isna(), m["within_0_5pct"], m["n_loans_no_balance"] > 0],
-            ["statement_unread", "match", "filing_omits_balances"], "mismatch")
+            [m["tend_sched_balance"].isna(), m["within_0_5pct"], m["corrupt_reason"].notna(),
+             m["n_loans_missing"].fillna(0) > 0, m["n_loans_no_balance"] > 0],
+            ["statement_unread", "match", "filing_corrupt", "filing_incomplete", "filing_omits_balances"],
+            "mismatch")
         recon = m
         m.to_csv(qa / "balance_reconciliation.csv", index=False)
 
@@ -279,6 +325,19 @@ def run(log=print) -> None:
     flags["share"] = flags["count"] / n_lp
     flags.to_csv(qa / "qa_flags.csv")
 
+    # ---- 5b. filing screen (D035, D036) ----------------------------------------
+    screen_tot = con.execute("""
+        select count(*) n_filings,
+               coalesce(sum(n_exact_copies_dropped), 0) copies, count(*) filter (where n_exact_copies_dropped > 0) f_copies,
+               coalesce(sum(n_split_records), 0) splits, count(*) filter (where n_split_records > 0) f_splits,
+               count(*) filter (where corrupt_reason is not null) f_corrupt,
+               count(*) filter (where n_loans_missing > 0) f_incomplete, coalesce(sum(n_loans_missing), 0) missing,
+               count(*) filter (where superseded_by is not null) f_superseded
+        from fs""").df().iloc[0]
+    con.execute("""select * from fs where corrupt_reason is not null or n_exact_copies_dropped > 0
+                   or n_split_records > 0 or n_loans_missing > 0 order by trust_cik, accession""").df().to_csv(
+        qa / "filing_screen.csv", index=False)
+
     # ---- 6. DSCR recompute, basis, share --------------------------------------
     dscr = con.execute("""
         select count(*) n,
@@ -299,7 +358,7 @@ def run(log=print) -> None:
 
     # ---- write markdown ---------------------------------------------------------
     check = checklist(filings=filings, trusts=trusts, dl=dl, pf=pf, roll=roll, recon=recon, dscr=dscr,
-                      flags=flags, n_abs=n_abs)
+                      flags=flags, n_abs=n_abs, hist=hist, dup_rows=dup_rows)
     L = [
         "# Gate 1 data QA report",
         "",
@@ -332,6 +391,9 @@ def run(log=print) -> None:
         f"- Trusts checked: {len(roll)}. Passing: {int(roll['pass'].sum())}. Opening loans: "
         f"{int(roll['n_first_period'].sum()):,}. Exits: {int(roll['n_exited'].sum()):,}, of which explained "
         f"{int(roll['n_exits_explained'].sum()):,} and unexplained {int(roll['n_exits_unexplained'].sum()):,}.",
+        f"- Loans that appear mid-history for at most a few periods with no payoff code, left out above as another "
+        f"deal's records filed into the trust (D035): {int(roll['n_transient_loans'].sum()):,} in "
+        f"{int(roll['n_transient_filings'].sum()):,} filings across {int((roll['n_transient_loans'] > 0).sum())} trusts.",
         "",
         "## Pool balance vs the 10-D distribution statement",
         "",
@@ -342,6 +404,22 @@ def run(log=print) -> None:
          "`filing_omits_balances` means the EX-102 itself leaves some loans' period balances blank, so the gap is in "
          "the source, not the pipeline. Detail: `balance_reconciliation.csv`."
          if len(recon) else "- No 10-D statements matched to parsed periods yet."),
+        "",
+        "## Filing screen",
+        "",
+        "Each filing is screened before its records are resolved into loans (`clean/screen.py`, D035 and D036).",
+        "",
+        f"- Filings screened: {int(screen_tot['n_filings']):,}. Superseded by a later filing for the same XML "
+        f"reporting period although EDGAR gave them different report dates: {int(screen_tot['f_superseded']):,}.",
+        f"- Exact copies of a record dropped: {int(screen_tot['copies']):,} in {int(screen_tot['f_copies']):,} filings.",
+        f"- Loans split into notes under one number (largest keeps it, the rest become -S2, -S3): "
+        f"{int(screen_tot['splits']):,} records in {int(screen_tot['f_splits']):,} filings.",
+        f"- Filings holding another deal's records, kept but flagged `flag_filing_corrupt` and left out of the checks "
+        f"above and the panel: {int(screen_tot['f_corrupt']):,}.",
+        f"- Filings that leave out loans reported both before and after them: {int(screen_tot['f_incomplete']):,} "
+        f"({int(screen_tot['missing']):,} loan-periods missing; the loans carry `flag_history_gap` when they return).",
+        "",
+        "Detail: `filing_screen.csv`.",
         "",
         "## Ratio checks",
         "",

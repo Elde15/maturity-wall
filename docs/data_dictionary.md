@@ -41,6 +41,17 @@ Every element of the SEC CMBS asset-data schema keeps its XML name, so any value
 | `flag_*` | bool | QA flags (SOP 8.7): noi_missing, noi_stale (>18 months), dscr_inconsistent (>5%), valuation_old (>5 years), zero_balance_active, mixed_fin_periods, fin_basis_unknown, fin_period_assumed, occupancy_unreadable, rate_unreadable, invalid_code, replicated_inconsistent, swapped_asset_number, unparsed_number, rootless_note. | `clean/run.py, clean/structure.py` |
 | `whole_loan_id` | string | Cross-trust whole-loan group (parsed/whole_loans.parquet; D027). | `clean/whole_loans.py` |
 
+### Screening and history fields (D035, D036)
+
+| Field | Definition |
+| --- | --- |
+| `flag_transient_loan` | Loan first seen after the opening period, seen in at most three periods, gone before the latest, never coded as liquidated or prepaid |
+| `flag_filing_corrupt` | Every row of a filing that holds another deal's records; excluded from the roll-forward, the 10-D check and the panel |
+| `months_since_prev_report` | Months between this XML reporting period and the loan's previous one (corrupt filings aside) |
+| `flag_history_gap` | `months_since_prev_report` above 1: at least one month missing, never filled |
+
+`parsed/filing_screen/{cik}.parquet`, one row per filing: `n_exact_copies_dropped`, `n_split_records`, `n_foreign_repeats`, `n_transient_loans`, `n_loans_missing` (loans reported before and after but not in this filing), `corrupt_reason`, `superseded_by` (the filing that replaced it for the same XML reporting period).
+
 ## Property blocks (`property_period`)
 
 | Field | Definition |

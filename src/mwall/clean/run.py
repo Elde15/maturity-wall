@@ -20,13 +20,14 @@ import duckdb
 import numpy as np
 import pandas as pd
 
-from mwall.clean import code_tables, structure
+from mwall.clean import code_tables, screen, structure
 from mwall.common import paths
 
 DSCR_TOL = 0.05          # relative tolerance for reported vs recomputed DSCR
 NOI_STALE_MONTHS = 18
 VALUATION_OLD_YEARS = 5
 SHARE_WHOLE = 0.90       # trust share above this = the whole loan is in the trust
+TRANSIENT_MAX_PERIODS = 3  # a mid-history loan seen this many periods or fewer, never coded = foreign record
 
 
 def _months_between(start: pd.Series, end: pd.Series) -> pd.Series:
@@ -87,6 +88,13 @@ def clean_trust(cik: int) -> dict:
     p = p[p["is_period_winner"]]
     if a.empty:
         return {"cik": cik, "loans": 0, "properties": 0, "note": "no winning filings"}
+    a, p, superseded = screen.one_filing_per_period(a, p)
+    a, p, fq = screen.screen(a, p)
+    fq = pd.concat([fq, superseded], ignore_index=True)
+    counts = ["n_exact_copies_dropped", "n_split_records", "n_foreign_repeats"]
+    fq[counts] = fq[counts].fillna(0).astype(int)
+    if "superseded_by" not in fq.columns:
+        fq["superseded_by"] = None
     loans, props = structure.resolve(a, p)
 
     # ---- period ------------------------------------------------------------
@@ -162,6 +170,55 @@ def clean_trust(cik: int) -> dict:
     active = loans["paymentStatusLoanCode"].notna() & loans["liquidationPrepaymentCode"].isna()
     loans["flag_zero_balance_active"] = active & (loans["balance"].fillna(0) <= 0)
 
+    # A CMBS pool takes no new loans after issuance. A loan that first appears after the trust's opening
+    # period and is gone again within a few periods, with no liquidation or prepayment code, is another
+    # deal's record filed into this trust (D035). It stays in the table, flagged, and is left out of the
+    # loan-count roll-forward and the panel.
+    # One period per filing: a filing's rows can carry period-end dates a day apart.
+    loans = loans.reset_index(drop=True)
+    acc_pe = loans["period_end"].fillna(loans["filing_date"]).groupby(loans["accession"]).transform("max")
+    k = acc_pe.rank(method="dense").astype(int)
+
+    # A CMBS pool takes no new loans after issuance. A loan that first appears after the trust's opening
+    # period and is gone again within a few periods, with no liquidation or prepayment code, is another
+    # deal's record filed into this trust (D035).
+    by_loan = loans.assign(_k=k, _coded=loans["liquidationPrepaymentCode"].notna()).groupby("loan_key")
+    first, last = by_loan["_k"].transform("min"), by_loan["_k"].transform("max")
+    n_seen = by_loan["_k"].transform("nunique")
+    coded = by_loan["_coded"].transform("any")
+    loans["flag_transient_loan"] = ((first > 1) & (last < k.max()) & (n_seen <= TRANSIENT_MAX_PERIODS)
+                                    & ~coded).to_numpy()
+
+    # Filings holding another deal's records are flagged whole (D036).
+    tr = loans.loc[loans["flag_transient_loan"], "accession"].value_counts()
+    fq["n_transient_loans"] = fq["accession"].map(tr).fillna(0).astype(int)
+    fq.loc[fq["corrupt_reason"].isna() & (fq["n_transient_loans"] > 0), "corrupt_reason"] = (
+        "loans from another deal present for a few periods only")
+    fq.insert(0, "trust_cik", cik)
+    corrupt = set(fq.loc[fq["corrupt_reason"].notna(), "accession"])
+    loans["flag_filing_corrupt"] = loans["accession"].isin(corrupt)
+    props["flag_filing_corrupt"] = props["accession"].isin(corrupt)
+
+    # Gaps in a loan's monthly history are flagged, never filled (SOP 8.3). A filing that leaves out
+    # loans reported both before and after it is counted as incomplete (D036).
+    good = ~loans["flag_filing_corrupt"] & ~loans["flag_transient_loan"]
+    mi = acc_pe.dt.year * 12 + acc_pe.dt.month
+    seq = pd.DataFrame({"lk": loans["loan_key"], "mi": mi})[good].sort_values(["lk", "mi"])
+    seq["prev"] = seq.groupby("lk")["mi"].shift()
+    loans["months_since_prev_report"] = seq["mi"] - seq["prev"]  # aligns on the index
+    loans["flag_history_gap"] = loans["months_since_prev_report"] > 1
+    present = pd.DataFrame({"lk": loans["loan_key"], "k": k})[good].drop_duplicates()
+    span = present.groupby("lk")["k"].agg(["min", "max"])
+    good_k = sorted(present["k"].unique())
+    seen = set(zip(present["lk"], present["k"]))
+    missing = {}
+    for lk, lo, hi in span.itertuples():
+        for kk in good_k:
+            if lo < kk < hi and (lk, kk) not in seen:
+                missing[kk] = missing.get(kk, 0) + 1
+    acc_k = pd.Series(k.to_numpy(), index=loans["accession"]).groupby(level=0).first()
+    fq["n_loans_missing"] = fq["accession"].map(acc_k).map(missing).fillna(0).astype(int)
+
     # property-level flags
     props["flag_noi_missing"] = props["mostRecentNetOperatingIncomeAmount"].isna()
 
@@ -171,6 +228,9 @@ def clean_trust(cik: int) -> dict:
     out_p.parent.mkdir(parents=True, exist_ok=True)
     keep_p = props.drop(columns=[c for c in ["first_note_seq"] if c in props.columns])
     loans.to_parquet(out_l, index=False, compression="zstd")
+    out_s = paths.PARSED_DIR / "filing_screen" / f"{cik}.parquet"
+    out_s.parent.mkdir(parents=True, exist_ok=True)
+    fq.to_parquet(out_s, index=False)
     keep_p.to_parquet(out_p, index=False, compression="zstd")
     return {"cik": cik, "loans": len(loans), "properties": int((props["block_role"] == "property").sum()),
             "note": ""}
