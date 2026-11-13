@@ -3,8 +3,8 @@
   "with_match_key": 16258,
   "multi_trust_whole_loans": 1650,
   "records_in_multi_trust_whole_loans": 4400,
-  "records": 17471,
+  "records": 17470,
   "pieces_matched_share": 0.8204,
-  "value_overstatement_if_summed": 1.3005,
-  "noi_overstatement_if_summed": 1.6796
+  "value_overstatement_if_summed": 1.3008,
+  "noi_overstatement_if_summed": 1.6737
 }

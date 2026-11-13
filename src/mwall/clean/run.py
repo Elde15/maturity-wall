@@ -28,6 +28,7 @@ NOI_STALE_MONTHS = 18
 VALUATION_OLD_YEARS = 5
 SHARE_WHOLE = 0.90       # trust share above this = the whole loan is in the trust
 TRANSIENT_MAX_PERIODS = 3  # a mid-history loan seen this many periods or fewer, never coded = foreign record
+FOREIGN_ORIG_DAYS = 60   # origination date this far from the loan's usual one marks a foreign record
 
 
 def _months_between(start: pd.Series, end: pd.Series) -> pd.Series:
@@ -189,11 +190,27 @@ def clean_trust(cik: int) -> dict:
     loans["flag_transient_loan"] = ((first > 1) & (last < k.max()) & (n_seen <= TRANSIENT_MAX_PERIODS)
                                     & ~coded).to_numpy()
 
+    # Another deal's record can also arrive under one of this trust's loan numbers: the number keeps its
+    # history but, for a filing or a few, carries an origination date far from its own. A deviation that
+    # persists for more than three filings is a corrected date instead (D036).
+    orig = pd.to_datetime(loans["originationDate"], errors="coerce")
+    usual = orig.groupby(loans["loan_key"]).transform(lambda s: s.mode().iloc[0] if s.notna().any() else pd.NaT)
+    n_usual = (orig == usual).groupby(loans["loan_key"]).transform("sum")
+    off = (orig - usual).abs() > pd.Timedelta(days=FOREIGN_ORIG_DAYS)
+    n_off = loans["accession"].where(off).groupby(loans["loan_key"]).transform("nunique")
+    # the usual date must be backed by at least three filings and by more filings than the deviation
+    loans["flag_foreign_record"] = (off & (n_off <= TRANSIENT_MAX_PERIODS) & (n_usual >= 3)
+                                    & (n_usual > n_off)).to_numpy()
+
     # Filings holding another deal's records are flagged whole (D036).
     tr = loans.loc[loans["flag_transient_loan"], "accession"].value_counts()
     fq["n_transient_loans"] = fq["accession"].map(tr).fillna(0).astype(int)
+    fr = loans.loc[loans["flag_foreign_record"], "accession"].value_counts()
+    fq["n_foreign_records"] = fq["accession"].map(fr).fillna(0).astype(int)
     fq.loc[fq["corrupt_reason"].isna() & (fq["n_transient_loans"] > 0), "corrupt_reason"] = (
         "loans from another deal present for a few periods only")
+    fq.loc[fq["corrupt_reason"].isna() & (fq["n_foreign_records"] > 0), "corrupt_reason"] = (
+        "records under this trust's loan numbers with another loan's origination date")
     fq.insert(0, "trust_cik", cik)
     corrupt = set(fq.loc[fq["corrupt_reason"].notna(), "accession"])
     loans["flag_filing_corrupt"] = loans["accession"].isin(corrupt)

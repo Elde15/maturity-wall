@@ -35,6 +35,7 @@ COVERAGE_FIELDS = {
     "wl_balance_est": "whole-loan balance estimate",
 }
 UNEXPLAINED_TOL = 0.02  # share of a trust's first-period loans
+MATURITY_WINDOW_DAYS = 180  # an exit this close to maturity is a payoff in the open prepayment period (D037)
 
 
 def md_table(df: pd.DataFrame, index: bool = False, floatfmt: str = ".2f") -> str:
@@ -65,6 +66,19 @@ def _con() -> duckdb.DuckDBPyConnection:
                     "0 n_exact_copies_dropped, 0 n_split_records, 0 n_foreign_repeats, 0 n_transient_loans, "
                     "0 n_loans_missing, null::bigint trust_cik, null::varchar superseded_by where false")
     return con
+
+
+RECON_COLS = ["trust_cik", "accession", "filing_date", "tend_accession", "sched_sum", "tend_sched_balance",
+              "rel_diff", "category", "tend_pattern", "non_pooled_root", "gap_dollars", "n_loans_no_balance",
+              "n_loans_missing", "corrupt_reason"]
+
+
+def _write_recon(m: pd.DataFrame, qa) -> None:
+    out = m[[c for c in RECON_COLS if c in m.columns]].copy()
+    for c in ["sched_sum", "tend_sched_balance"]:
+        out[c] = out[c].round(2)
+    out["rel_diff"] = out["rel_diff"].round(6)
+    out.sort_values(["trust_cik", "filing_date"]).to_csv(qa / "balance_reconciliation.csv", index=False)
 
 
 def _pct(x: float) -> str:
@@ -163,7 +177,9 @@ def checklist(*, filings, trusts, dl, pf, roll, recon, dscr, flags, n_abs, hist,
         ok = (bad <= 0.01 * len(read) and unread <= 0.01 * max(1, len(recon))) if (complete and tend_done) else None
         rows.append(("Loan balances reconcile to the 10-D within 0.5% (section 8)", ok,
                      f"{len(read):,} trust-periods with a readable statement: {cats.get('match', 0):,} within 0.5%, "
-                     f"{cats.get('non_pooled_notes', 0):,} off by exactly the trust's non-pooled notes (D038), "
+                     f"{cats.get('non_pooled_notes', 0):,} off by exactly the trust's non-pooled notes and "
+                     f"{cats.get('constant_offset', 0):,} by a fixed dollar amount the two sides scope differently "
+                     f"(D038; `constant_offsets.csv`), "
                      f"{cats.get('filing_omits_balances', 0):,} where the EX-102 leaves balances blank, "
                      f"{cats.get('filing_incomplete', 0) + cats.get('filing_drops_loans', 0):,} incomplete and "
                      f"{cats.get('filing_corrupt', 0):,} corrupt "
@@ -332,14 +348,31 @@ def run(log=print) -> None:
             n_same = m.groupby(["trust_cik", "non_pooled_root"])["accession"].transform("count")
             m.loc[n_same.fillna(0) < 3, "non_pooled_root"] = None
             m.loc[m["non_pooled_root"].notna(), "non_pooled_root"] = m["non_pooled_root"]
+        # A gap identical to the dollar across periods, while loan balances amortize underneath it, is a fixed
+        # asset one side carries and the other does not (D038): not a pipeline error, which would move with the
+        # balances. EX-102 lower: an asset the loan data never lists. EX-102 higher: non-pooled notes not
+        # otherwise identified.
+        m["gap_dollars"] = (m["tend_sched_balance"] - m["sched_sum"]).round(0)
+        off = m[~m["within_0_5pct"] & m["tend_sched_balance"].notna()].copy()
+        off["gap_key"] = (off["gap_dollars"] / 2).round(0)
+        n_off = off.groupby(["trust_cik", "gap_key"])["accession"].transform("count")
+        const = set(off.loc[n_off >= 3, "accession"])
+        m["constant_offset"] = m["accession"].isin(const)
         m["category"] = np.select(
             [m["tend_sched_balance"].isna(), m["within_0_5pct"], m["non_pooled_root"].notna(),
-             m["corrupt_reason"].notna(), m["n_loans_missing"].fillna(0) > 0, m["n_loans_no_balance"] > 0],
+             m["corrupt_reason"].notna(), m["n_loans_missing"].fillna(0) > 0, m["n_loans_no_balance"] > 0,
+             m["constant_offset"]],
             ["statement_unread", "match", "non_pooled_notes", "filing_corrupt", "filing_incomplete",
-             "filing_omits_balances"],
+             "filing_omits_balances", "constant_offset"],
             "mismatch")
         recon = m
-        m.to_csv(qa / "balance_reconciliation.csv", index=False)
+        _write_recon(m, qa)
+        co = m[m["category"] == "constant_offset"].groupby(["trust_cik", "gap_dollars"]).agg(
+            periods=("accession", "count"), first=("filing_date", "min"), last=("filing_date", "max")).reset_index()
+        co = co.merge(trusts[["trust_cik", "trust_name"]], on="trust_cik", how="left")
+        co["side"] = np.where(co["gap_dollars"] > 0, "10-D carries a fixed amount the EX-102 does not list",
+                              "EX-102 carries a fixed amount outside the 10-D pool")
+        co.sort_values("periods", ascending=False).to_csv(qa / "constant_offsets.csv", index=False)
 
     # ---- 3c. classify exits now that the 10-D comparison exists -----------------
     roots["exited"] = roots["last_k"] < roots["max_k"]
@@ -351,9 +384,26 @@ def run(log=print) -> None:
         j = ex[["trust_cik", "root_key", "last_pe"]].merge(short, on="trust_cik")
         j = j[pd.to_datetime(j["filing_date"]) > pd.to_datetime(j["last_pe"]) + pd.Timedelta(days=20)]
         ex["source_omitted"] = ex["root_key"].isin(set(j["root_key"]))
+    # paid off per the 10-D: the administrator's pool balance falls by at least 90% of the loan's balance
+    # between the filing that last lists the loan and the next one
+    ex["paid_per_10d"] = False
+    if len(recon) and len(ex):
+        rc = recon[recon["tend_sched_balance"].notna()][["trust_cik", "filing_date", "tend_sched_balance"]].copy()
+        rc["filing_date"] = pd.to_datetime(rc["filing_date"])
+        rc = rc.sort_values(["trust_cik", "filing_date"])
+        rc["next_bal"] = rc.groupby("trust_cik")["tend_sched_balance"].shift(-1)
+        rc["drop"] = rc["tend_sched_balance"] - rc["next_bal"]
+        hits = []
+        for r_ in ex.itertuples():
+            t_ = rc[(rc["trust_cik"] == r_.trust_cik) & (rc["filing_date"] >= pd.to_datetime(r_.last_pe))
+                    & (rc["filing_date"] <= pd.to_datetime(r_.last_pe) + pd.Timedelta(days=45))]
+            hits.append(bool(len(t_)) and bool(t_["drop"].iloc[0] >= 0.9 * (r_.last_balance or 0) > 0))
+        ex["paid_per_10d"] = hits
     ex["exit_category"] = np.select(
-        [ex["has_code"] | (ex["last_balance"].fillna(0) <= 0), ex["days_to_maturity"] <= 90, ex["source_omitted"]],
-        ["payoff_code_or_zero_balance", "at_maturity", "omitted_by_source"], "unexplained")
+        [ex["has_code"] | (ex["last_balance"].fillna(0) <= 0), ex["days_to_maturity"] <= MATURITY_WINDOW_DAYS,
+         ex["paid_per_10d"], ex["source_omitted"], ex["last_k"] == ex["max_k"] - 1],
+        ["payoff_code_or_zero_balance", "at_maturity", "paid_off_per_10d", "omitted_by_source",
+         "absent_from_latest_only"], "unexplained")
     # a 10-D shortfall covered by loans that vanished earlier without a payoff is the filing dropping loans
     if len(recon) and len(ex):
         gone = ex[ex["exit_category"].isin(["omitted_by_source", "unexplained"])][["trust_cik", "last_pe", "last_balance"]]
@@ -366,7 +416,7 @@ def run(log=print) -> None:
         cover["gap"] = cover["gap"] - cover["ssum"]
         ok = cover.index[(cover["dropped"] - cover["gap"]).abs() <= 0.05 * cover["gap"]]
         recon.loc[recon["accession"].isin(ok), "category"] = "filing_drops_loans"
-        recon.to_csv(qa / "balance_reconciliation.csv", index=False)
+        _write_recon(recon, qa)
     ex.merge(trusts[["trust_cik", "trust_name"]], on="trust_cik", how="left").sort_values(
         ["exit_category", "trust_cik", "last_pe"]).to_csv(qa / "loan_exits.csv", index=False)
     g = roots.groupby("trust_cik")
@@ -377,7 +427,8 @@ def run(log=print) -> None:
         "n_periods": g["max_k"].max(),
     })
     cats = ex.pivot_table(index="trust_cik", columns="exit_category", values="root_key", aggfunc="count")
-    for c in ["payoff_code_or_zero_balance", "at_maturity", "omitted_by_source", "unexplained"]:
+    for c in ["payoff_code_or_zero_balance", "at_maturity", "paid_off_per_10d", "omitted_by_source",
+              "absent_from_latest_only", "unexplained"]:
         roll["n_exits_" + c] = cats[c] if c in cats.columns else 0
     roll = roll.fillna(0).astype(int).reset_index()
     roll["n_exited"] = roll[[c for c in roll.columns if c.startswith("n_exits_")]].sum(axis=1)
@@ -472,14 +523,18 @@ def run(log=print) -> None:
         "their root number, so a loan renumbered into notes (6 becoming 6-A and 6-B) is not an exit. Filers keep "
         "listing a paid-off loan at zero balance with its payoff code, so payoffs stay in the count rather than "
         "leaving it. A loan that stops appearing is explained by a payoff code or zero balance, by reaching "
-        "maturity (last seen within 90 days of it), or as left out by the source when a later 10-D still carries "
-        f"more balance than the loan data lists (D037). Tolerance: unexplained exits at most "
+        f"maturity (last seen within {MATURITY_WINDOW_DAYS} days of it, the usual open prepayment window), by a "
+        "matching drop in the administrator's pool balance on the 10-D, or as left out by the source when a later "
+        f"10-D still carries more balance than the loan data lists (D037). Tolerance: unexplained exits at most "
         f"{_pct(UNEXPLAINED_TOL)} of the opening count.",
         "",
         f"- Trusts checked: {len(roll)}. Passing: {int(roll['pass'].sum())}. Opening loans: "
         f"{int(roll['n_first_period'].sum()):,}. Exits: {int(roll['n_exited'].sum()):,}: payoff code or zero balance "
-        f"{int(roll['n_exits_payoff_code_or_zero_balance'].sum()):,}, at maturity {int(roll['n_exits_at_maturity'].sum()):,}, "
-        f"left out by the source {int(roll['n_exits_omitted_by_source'].sum()):,}, unexplained "
+        f"{int(roll['n_exits_payoff_code_or_zero_balance'].sum()):,}, at or near maturity {int(roll['n_exits_at_maturity'].sum()):,}, "
+        f"paid off per the 10-D {int(roll['n_exits_paid_off_per_10d'].sum()):,}, "
+        f"left out by the source {int(roll['n_exits_omitted_by_source'].sum()):,}, missing only from the latest "
+        f"filing (cannot yet be told from a one-month gap) {int(roll['n_exits_absent_from_latest_only'].sum()):,}, "
+        "unexplained "
         f"{int(roll['n_exits_unexplained'].sum()):,}. Detail: `loan_exits.csv`.",
         f"- Loans that appear mid-history for at most a few periods with no payoff code, left out above as another "
         f"deal's records filed into the trust (D035): {int(roll['n_transient_loans'].sum()):,} in "

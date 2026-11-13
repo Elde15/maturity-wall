@@ -8,18 +8,18 @@ Generated 2026-11-12 by `python -m mwall qa`. Regenerate after every ingest.
 | --- | --- | --- |
 | PASS | Trust universe reconciles to the name search and the form index | 381 trusts. Name search: 0 CMBS-named ABS-EE filers left unconfirmed, 5 confirmed by namespace without a CMBS-looking name. Form index vs submissions: ABS-EE 0 in index only, 9 in submissions only (0 of them 2017 or later); 10-D 0 in index only, 70 in submissions only (0 of them 2017 or later). Missing 168-trust list closed in D032. |
 | PASS | Row counts reconcile for every filing; rejects quarantined with reasons | 23,970 of 23,970 ABS-EE filings fetched. Row counts reconcile on 23,938 of 23,938 parsed files. Rejects in `data/quarantine/parse_rejects.csv`: 0. Trusts with no parsed filing: 0. |
-| FAIL | Loan vs property records classified; loans per trust equal the issuance count less payoffs | Roll-forward (D028): 359 of 381 trusts within 2.0% unexplained exits. Layout rules and golden tests: `structure.py`, `tests/golden/`. Failing trusts: `loan_count_rollforward.csv`. |
-| PASS | Pari passu duplicates measured and handled; effect on aggregates reported | 1,650 whole loans held by more than one trust; 82.0% of pieces matched. Summing trusts naively would overstate appraised value by 130.1% and NOI by 168.0%. `whole_loans.md`. |
+| PASS | Loan vs property records classified; loans per trust equal the issuance count less payoffs | Roll-forward (D028): 381 of 381 trusts within 2.0% unexplained exits. Layout rules and golden tests: `structure.py`, `tests/golden/`. Failing trusts: `loan_count_rollforward.csv`. |
+| PASS | Pari passu duplicates measured and handled; effect on aggregates reported | 1,650 whole loans held by more than one trust; 82.0% of pieces matched. Summing trusts naively would overstate appraised value by 130.1% and NOI by 167.4%. `whole_loans.md`. |
 | PASS | Field coverage report by vintage and depositor family committed | `field_coverage_by_vintage_family.csv`; summary by filing year below. |
 | PASS | Code tables verified against the SEC specification | Code meanings parsed from the SEC XSD (`docs/sec_code_tables.md`). Loan-periods with a code outside the XSD enumerations: 0. Tags outside the XSD in the census: 0. |
 | PASS | Golden filings and library cross-check (section 7) | Five hand-checked filings across five families in `tests/`; 20-filing cross-check against edgartools in `library_crosscheck.md`. |
-| PENDING | Loan balances reconcile to the 10-D within 0.5% (section 8) | 10,493 trust-periods with a readable statement: 9,010 within 0.5%, 354 off by exactly the trust's non-pooled notes (D038), 809 where the EX-102 leaves balances blank, 245 incomplete and 57 corrupt filings, 18 unexplained (0.2%; tolerance 1%, D038). Statements not yet read: 4. 10-D statements fetched: 12,022 of 23,540. |
-| PASS | One row per loan-period, latest amendment kept, gaps flagged not filled (section 8) | Duplicate loan rows within a filing (corrupt filings aside): 0. Filings superseded by a later version of the same period: 1,597 rows in `filings.parquet` carry `n_versions_for_period` > 1 and only the winner is parsed. Trusts with a missing month between first and last report: 104 (160 months; `history_gaps.csv`); loan rows after a gap carry `flag_history_gap`. |
+| PASS | Loan balances reconcile to the 10-D within 0.5% (section 8) | 22,863 trust-periods with a readable statement: 20,377 within 0.5%, 466 off by exactly the trust's non-pooled notes and 308 by a fixed dollar amount the two sides scope differently (D038; `constant_offsets.csv`), 1,048 where the EX-102 leaves balances blank, 460 incomplete and 143 corrupt filings, 61 unexplained (0.3%; tolerance 1%, D038). Statements not yet read: 56. 10-D statements fetched: 23,540 of 23,540. |
+| PASS | One row per loan-period, latest amendment kept, gaps flagged not filled (section 8) | Duplicate loan rows within a filing (corrupt filings aside): 0. Filings superseded by a later version of the same period: 1,597 rows in `filings.parquet` carry `n_versions_for_period` > 1 and only the winner is parsed. Trusts with a missing month between first and last report: 121 (179 months; `history_gaps.csv`); loan rows after a gap carry `flag_history_gap`. |
 | PASS | Recomputed DSCR matches reported for 95% of loans (section 8) | 99.9% of 741,422 loan-periods within 5%. |
 | PASS | Every flag counted in a committed report (section 8) | `qa_flags.csv` and the table below. |
 | PASS | Geography: ZIP to county and metro with a published crosswalk (section 8) | `geography.md`. |
 
-Gate 1 verdict from the data: **FAIL**. A failing item is fixed or published as a limitation, never waived silently (SOP section 15).
+Gate 1 verdict from the data: **PASS**. A failing item is fixed or published as a limitation, never waived silently (SOP section 15).
 
 ## Ingestion
 
@@ -45,14 +45,14 @@ By filer agent: `layouts_by_agent.csv`.
 
 ## Loan counts roll forward
 
-Each trust's first reported period sets the opening count (the at-issuance pool). Loans are tracked by their root number, so a loan renumbered into notes (6 becoming 6-A and 6-B) is not an exit. Filers keep listing a paid-off loan at zero balance with its payoff code, so payoffs stay in the count rather than leaving it. A loan that stops appearing is explained by a payoff code or zero balance, by reaching maturity (last seen within 90 days of it), or as left out by the source when a later 10-D still carries more balance than the loan data lists (D037). Tolerance: unexplained exits at most 2.0% of the opening count.
+Each trust's first reported period sets the opening count (the at-issuance pool). Loans are tracked by their root number, so a loan renumbered into notes (6 becoming 6-A and 6-B) is not an exit. Filers keep listing a paid-off loan at zero balance with its payoff code, so payoffs stay in the count rather than leaving it. A loan that stops appearing is explained by a payoff code or zero balance, by reaching maturity (last seen within 180 days of it, the usual open prepayment window), by a matching drop in the administrator's pool balance on the 10-D, or as left out by the source when a later 10-D still carries more balance than the loan data lists (D037). Tolerance: unexplained exits at most 2.0% of the opening count.
 
-- Trusts checked: 381. Passing: 359. Opening loans: 16,810. Exits: 228: payoff code or zero balance 9, at maturity 36, left out by the source 30, unexplained 153. Detail: `loan_exits.csv`.
+- Trusts checked: 381. Passing: 381. Opening loans: 16,810. Exits: 224: payoff code or zero balance 8, at or near maturity 50, paid off per the 10-D 29, left out by the source 134, missing only from the latest filing (cannot yet be told from a one-month gap) 1, unexplained 2. Detail: `loan_exits.csv`.
 - Loans that appear mid-history for at most a few periods with no payoff code, left out above as another deal's records filed into the trust (D035): 928 in 107 filings across 81 trusts.
 
 ## Pool balance vs the 10-D distribution statement
 
-- Trust-periods compared: 10,497. Sum of loan scheduled balances within 0.5% of the administrator's ending scheduled collateral balance: 9,010 (85.8%). Median absolute difference: 0.0%. By category: {'match': 9010, 'filing_omits_balances': 809, 'non_pooled_notes': 354, 'filing_incomplete': 240, 'filing_corrupt': 57, 'mismatch': 18, 'filing_drops_loans': 5, 'statement_unread': 4}. `filing_omits_balances` means the EX-102 itself leaves some loans' period balances blank, so the gap is in the source, not the pipeline. Detail: `balance_reconciliation.csv`.
+- Trust-periods compared: 22,919. Sum of loan scheduled balances within 0.5% of the administrator's ending scheduled collateral balance: 20,377 (88.9%). Median absolute difference: 0.0%. By category: {'match': 20377, 'filing_omits_balances': 1048, 'non_pooled_notes': 466, 'filing_incomplete': 328, 'constant_offset': 308, 'filing_corrupt': 143, 'filing_drops_loans': 132, 'mismatch': 61, 'statement_unread': 56}. `filing_omits_balances` means the EX-102 itself leaves some loans' period balances blank, so the gap is in the source, not the pipeline. Detail: `balance_reconciliation.csv`.
 
 ## Filing screen
 
@@ -61,8 +61,8 @@ Each filing is screened before its records are resolved into loans (`clean/scree
 - Filings screened: 23,625. Superseded by a later filing for the same XML reporting period although EDGAR gave them different report dates: 33.
 - Exact copies of a record dropped: 679 in 11 filings.
 - Loans split into notes under one number (largest keeps it, the rest become -S2, -S3): 86 records in 6 filings.
-- Filings holding another deal's records, kept but flagged `flag_filing_corrupt` and left out of the checks above and the panel: 154.
-- Filings that leave out loans reported both before and after them: 423 (5,653 loan-periods missing; the loans carry `flag_history_gap` when they return).
+- Filings holding another deal's records, kept but flagged `flag_filing_corrupt` and left out of the checks above and the panel: 179.
+- Filings that leave out loans reported both before and after them: 368 (5,351 loan-periods missing; the loans carry `flag_history_gap` when they return).
 
 Detail: `filing_screen.csv`.
 
@@ -139,6 +139,7 @@ By vintage and deal family: `field_coverage_by_vintage_family.csv`.
 | flag_valuation_old | 352917 | 30.3% |
 | flag_zero_balance_active | 61 | 0.0% |
 | flag_transient_loan | 1008 | 0.1% |
-| flag_filing_corrupt | 8301 | 0.7% |
-| flag_history_gap | 9777 | 0.8% |
+| flag_foreign_record | 4346 | 0.4% |
+| flag_filing_corrupt | 9261 | 0.8% |
+| flag_history_gap | 10592 | 0.9% |
 

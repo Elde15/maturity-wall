@@ -4,16 +4,17 @@ Which US commercial mortgages won't refinance at today's rates, and what could a
 
 This repo answers that from the loan-level data that registered CMBS trusts file with the SEC every month (Form ABS-EE, exhibit EX-102). It ranks loans by the probability they fail at maturity, sizes the refinance gap the way a lender would, and underwrites an indicative bid for the collateral. Scores are screening aids under stated assumptions, not valuations or investment advice.
 
-**Status (November 2026): Gate 1 of 6, data.** The ingest, parser and cleaning layer are built and tested. The model, underwriting engine and site come next. The plan is `docs/SOP.md`; every departure from it is in `docs/decisions.md`.
+**Status (November 2026): Gate 1 of 6 (data) passed on the full universe.** The ingest, parser, cleaning layer and QA are built and tested; the sign-off and the limitations it publishes are in `docs/qa/gate1_signoff.md`. Features and labels (Gate 2) come next. The plan is `docs/SOP.md`; every departure from it is in `docs/decisions.md`.
 
 ## What's in the data so far
 
 - **Universe.** 381 registered CMBS trusts, found by reading the root namespace of every ABS-EE filer's EX-102 since 2017. Of 1,060 ABS-EE filers, 531 turned out to be auto loans and 131 auto leases. Name searches miss trusts; the namespace doesn't.
-- **Filings.** 23,970 monthly asset-data filings, parsed by our own streaming parser built from the SEC's XSD. On a 20-filing cross-check against edgartools, 177,480 shared fields matched with zero differences.
+- **Filings.** 23,970 monthly asset-data filings (2.03 million asset records), parsed by our own streaming parser built from the SEC's XSD with zero type failures. On a 20-filing cross-check against edgartools, 177,480 shared fields matched with zero differences.
 - **A loan is not a row.** Filers use at least six record layouts. In one, every property of a 39-property loan repeats the full $72.2M balance; summing rows would count it 39 times. `src/mwall/clean/structure.py` resolves each layout, and five hand-checked golden filings pin the behavior down in `tests/`.
 - **Pari passu pieces.** Property NOI and debt service cover the whole loan while the trust reports only its piece, so ratios are computed on an estimated whole-loan balance. Whole loans held by one trust come out at a median trust share of 1.000, which is the check that the estimate works. Summing collateral across trusts without grouping pieces would overstate NOI by roughly 150%.
 - **Geography.** Every property address gets a county and metro from the Census Geocoder and published crosswalks, never from a ZIP prefix: 42% of California addresses with ZIPs 900 to 935 sit outside the Los Angeles metro.
-- **Reconciliation.** Pool balances tie to the certificate administrator's 10-D statement. For BANK 2017-BNK4, January 2024, they agree to the cent ($859,864,958.46).
+- **Reconciliation.** Pool balances tie to the certificate administrator's 10-D statement within 0.5% in 20,377 of 22,863 trust-periods (BANK 2017-BNK4, January 2024, to the cent: $859,864,958.46). All but 61 of the rest trace to a named defect in the filings.
+- **The filings are not clean.** 179 filings carry another deal's loans, some trusts list only part of their pool for months at a time, and paid-off loans stay listed at zero balance. `src/mwall/clean/screen.py` catches these and flags them; nothing is silently fixed.
 
 QA reports live in `docs/qa/`.
 

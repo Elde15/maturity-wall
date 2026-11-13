@@ -128,6 +128,16 @@ def resolve(assets: pd.DataFrame, props: pd.DataFrame) -> tuple[pd.DataFrame, pd
     if rootless.any():
         key = (a.loc[rootless, "maturityDate"].astype(str) + "|" + a.loc[rootless, "originationDate"].astype(str))
         codes = {k: -(i + 1) for i, k in enumerate(sorted(key.unique()))}
+        # A filer can number a loan in one filing ("1") and file it as rootless notes in later ones. When
+        # exactly one numbered root in the trust has the same maturity and origination dates, the notes
+        # belong to it (D037).
+        numbered = a[a["root"].notna() & ~rootless & a["maturityDate"].notna() & a["originationDate"].notna()]
+        nkey = numbered["maturityDate"].astype(str) + "|" + numbered["originationDate"].astype(str)
+        roots_by_key = pd.Series(numbered["root"].to_numpy(), index=nkey.to_numpy()).groupby(level=0).agg(
+            lambda r: r.iloc[0] if r.nunique() == 1 else None)
+        for k in list(codes):
+            if k in roots_by_key.index and roots_by_key[k] is not None and not pd.isna(roots_by_key[k]):
+                codes[k] = int(roots_by_key[k])
         a.loc[rootless, "root"] = key.map(codes).astype("Int64")
     a["is_child"] = a["child"].notna()
     a["is_note"] = (a["note"] != "") & ~a["is_child"]
