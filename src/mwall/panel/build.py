@@ -164,7 +164,9 @@ def tier1(p: pd.DataFrame, trust_last: pd.Series) -> pd.DataFrame:
         elif pd.notna(pay_first) and pay_first <= mat + pd.Timedelta(days=GRACE_DAYS) and (
                 pd.isna(liq_first) or liq_first > pay_first):
             rec["outcome"] = "paid"
-        elif len(late) or pd.notna(liq_first):
+        elif len(late) or pd.notna(liq_first) or pd.notna(pay_first):
+            # a payoff later than the grace window is a failure to pay within it (D050), even when the next
+            # filing after the window already shows the payoff
             rec["outcome"] = "failed"
         else:
             rec["outcome"] = "unknown"

@@ -50,16 +50,16 @@ Distress events by type (representative rows; one month can carry several):
 
 ## Tier 1: maturity outcome (gold set)
 
-- Whole loans whose maturity plus 90 days falls inside the data: 587. Outcomes: {'paid': 258, 'failed': 164, 'excluded_defeased': 91, 'unknown': 39, 'excluded_early_payoff': 32, 'excluded_early_liquidation': 2, 'excluded_removed': 1}.
-- **Tier 1 events (failed to pay within 90 days of maturity): 164 of 422 labeled loans (38.9%).** Maturity dates moved later by extension at some point: 34. Maturity taken from an anticipated repayment date: 26.
+- Whole loans whose maturity plus 90 days falls inside the data: 587. Outcomes: {'paid': 258, 'failed': 173, 'excluded_defeased': 91, 'excluded_early_payoff': 32, 'unknown': 30, 'excluded_early_liquidation': 2, 'excluded_removed': 1}.
+- **Tier 1 events (failed to pay within 90 days of maturity): 173 of 431 labeled loans (40.1%).** Maturity dates moved later by extension at some point: 34. Maturity taken from an anticipated repayment date: 26.
 
 | property_group | loans | failed | rate |
 | --- | --- | --- | --- |
-| industrial | 20 | 1 | 0.050 |
-| lodging | 75 | 26 | 0.347 |
+| industrial | 25 | 6 | 0.240 |
+| lodging | 77 | 28 | 0.364 |
 | mixed_use | 30 | 16 | 0.533 |
-| multifamily | 62 | 22 | 0.355 |
-| office | 130 | 76 | 0.585 |
+| multifamily | 63 | 23 | 0.365 |
+| office | 131 | 77 | 0.588 |
 | other | 10 | 4 | 0.400 |
 | retail | 77 | 18 | 0.234 |
 | self_storage | 18 | 1 | 0.056 |
@@ -67,18 +67,18 @@ Distress events by type (representative rows; one month can carry several):
 | maturity_year | loans | failed | rate |
 | --- | --- | --- | --- |
 | 2021 | 18 | 1 | 0.056 |
-| 2022 | 106 | 27 | 0.255 |
+| 2022 | 108 | 29 | 0.269 |
 | 2023 | 76 | 34 | 0.447 |
-| 2024 | 117 | 58 | 0.496 |
+| 2024 | 124 | 65 | 0.524 |
 | 2025 | 58 | 28 | 0.483 |
 | 2026 | 47 | 16 | 0.340 |
 
 | vintage | loans | failed | rate |
 | --- | --- | --- | --- |
 | 2016 | 21 | 4 | 0.190 |
-| 2017 | 138 | 42 | 0.304 |
-| 2018 | 96 | 41 | 0.427 |
-| 2019 | 100 | 53 | 0.530 |
+| 2017 | 144 | 48 | 0.333 |
+| 2018 | 97 | 42 | 0.433 |
+| 2019 | 102 | 55 | 0.539 |
 | 2020 | 41 | 15 | 0.366 |
 | 2021 | 26 | 9 | 0.346 |
 

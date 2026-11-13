@@ -114,3 +114,14 @@ def test_gold_match_key_joins_pieces_and_separates_siblings():
     assert k[0] == k[1] != k[2]            # same loan across trusts; a different state is a different loan
     pm = payoff_month(pd.Series(pd.to_datetime(["2026-04-10", "2026-04-17", None])))
     assert pm.tolist() == ["2026-04", "2026-04", "open"]   # siblings that pay at different times stay apart
+
+
+def test_payoff_after_the_grace_window_is_a_failure():
+    m = _months("2023-01-01", 22)
+    # matures 2024-06-06 (grace ends 2024-09-04); still owed in the June, July and August filings; the first
+    # filing after the window (2024-09-11) already shows the payoff, so no late balance is ever reported
+    late = _loan("late", m, ["0"] * 17 + ["5"] * 3 + ["0"] * 2, [10.0] * 20 + [0.0] * 2,
+                 codes=[None] * 20 + ["5", "5"])
+    p = events(late)
+    t1 = tier1(p, pd.Series({1: pd.Timestamp("2025-06-11")})).set_index("root_key")
+    assert t1.loc["late", "outcome"] == "failed" and t1.loc["late", "y_fail"] == 1.0
