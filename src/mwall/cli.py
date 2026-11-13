@@ -59,6 +59,25 @@ def cmd_tend(args) -> None:
              budget_s=args.budget_s, log=_log)
 
 
+def cmd_loandetail(args) -> None:
+    if args.fetch:
+        from mwall.ingest import loan_detail as ld
+        from mwall.ingest.sec_client import SecClient
+
+        agents = None if args.all_agents else ld.PILOT_AGENTS
+        ld.fetch(SecClient(rate=args.rate), workers=args.workers, agents=agents, budget_s=args.budget_s, log=_log)
+    if args.parse:
+        from mwall.parse import loan_detail as pld
+
+        pld.run(log=_log)
+
+
+def cmd_panel(args) -> None:
+    from mwall.panel import build
+
+    build.build(log=_log)
+
+
 def cmd_census(args) -> None:
     from mwall.parse import census
 
@@ -137,6 +156,18 @@ def main(argv: list[str] | None = None) -> None:
     s.add_argument("--cik", type=int, action="append", help="restrict to these trust CIKs")
     s.add_argument("--max-filings", type=int, default=None)
     s.set_defaults(func=cmd_download)
+
+    s = sub.add_parser("panel", help="loan-month panel and tier 1-3 outcome labels (docs/labels.md)")
+    s.set_defaults(func=cmd_panel)
+
+    s = sub.add_parser("loandetail", help="vintage-2016 10-D loan detail tables (D033 pilot): fetch and/or parse")
+    s.add_argument("--fetch", action="store_true")
+    s.add_argument("--parse", action="store_true")
+    s.add_argument("--all-agents", action="store_true", help="beyond the Computershare pilot")
+    s.add_argument("--rate", type=float, default=7.0)
+    s.add_argument("--workers", type=int, default=8)
+    s.add_argument("--budget-s", type=float, default=None)
+    s.set_defaults(func=cmd_loandetail)
 
     s = sub.add_parser("tend", help="fetch 10-D distribution statements and extract pool balances")
     s.add_argument("--rate", type=float, default=6.0)
