@@ -4,7 +4,6 @@ Generated 2026-11-13 by `python -m mwall features`. Dictionary: `docs/features.m
 
 - Late snapshots (filed more than 60 days after the period, or after the loan's next period ended): 7,229 rows, kept out of model training.
 - Rows with a metro: 92.7%.
-- Pending (inputs not yet in place): `f_value_model`, `f_ltv_model`, `f_refi_gap`, `f_cap_rate_benchmark`.
 
 ## Coverage by property type (share not null)
 
@@ -18,10 +17,13 @@ Generated 2026-11-13 by `python -m mwall features`. Dictionary: `docs/features.m
 | f_ltv_securitization | 0.95 | 0.97 | 0.91 | 0.97 | 0.92 | 0.96 | 0.98 | 0.93 | 0.85 |
 | f_ltv_recent | 0.41 | 0.56 | 0.42 | 0.38 | 0.42 | 0.45 | 0.34 | 0.48 | 0.05 |
 | f_reappraised | 1.00 | 1.00 | 1.00 | 1.00 | 1.00 | 1.00 | 1.00 | 1.00 | 1.00 |
+| f_value_model | 0.46 | 0.56 | 0.70 | 0.68 | 0.63 | 0.24 | 0.00 | 0.00 | 0.00 |
+| f_ltv_model | 0.46 | 0.56 | 0.70 | 0.68 | 0.63 | 0.24 | 0.00 | 0.00 | 0.00 |
 | f_refi_rate | 1.00 | 1.00 | 1.00 | 1.00 | 1.00 | 1.00 | 1.00 | 1.00 | 1.00 |
 | f_refi_dscr | 0.63 | 0.56 | 0.71 | 0.74 | 0.63 | 0.73 | 0.71 | 0.67 | 0.10 |
 | f_refi_dy_cushion | 0.63 | 0.56 | 0.71 | 0.74 | 0.63 | 0.73 | 0.71 | 0.67 | 0.10 |
 | f_refi_gap_income | 0.63 | 0.56 | 0.71 | 0.74 | 0.63 | 0.73 | 0.71 | 0.67 | 0.10 |
+| f_refi_gap | 0.46 | 0.56 | 0.70 | 0.68 | 0.63 | 0.24 | 0.00 | 0.00 | 0.00 |
 | f_noi_vs_securitization | 0.59 | 0.52 | 0.66 | 0.69 | 0.57 | 0.69 | 0.65 | 0.62 | 0.09 |
 | f_noi_yoy | 0.43 | 0.35 | 0.50 | 0.52 | 0.42 | 0.47 | 0.50 | 0.45 | 0.07 |
 | f_expense_ratio | 0.64 | 0.57 | 0.72 | 0.73 | 0.63 | 0.74 | 0.71 | 0.67 | 0.10 |
@@ -69,6 +71,7 @@ Generated 2026-11-13 by `python -m mwall features`. Dictionary: `docs/features.m
 | f_ust5 | 1.00 | 1.00 | 1.00 | 1.00 | 1.00 | 1.00 | 1.00 | 1.00 | 1.00 |
 | f_ust10_change_12m | 1.00 | 1.00 | 1.00 | 1.00 | 1.00 | 1.00 | 1.00 | 1.00 | 1.00 |
 | f_curve_10y2y | 1.00 | 1.00 | 1.00 | 1.00 | 1.00 | 1.00 | 1.00 | 1.00 | 1.00 |
+| f_cap_rate_benchmark | 0.69 | 1.00 | 0.99 | 0.93 | 1.00 | 0.39 | 0.00 | 0.00 | 0.00 |
 | f_rent_growth_yoy | 0.88 | 0.94 | 0.97 | 0.93 | 0.92 | 0.90 | 0.94 | 0.97 | 0.13 |
 | f_mf_rent_growth_yoy | 0.85 | 0.91 | 0.97 | 0.89 | 0.89 | 0.85 | 0.89 | 0.96 | 0.13 |
 | f_emp_growth_yoy | 0.90 | 0.97 | 0.97 | 0.97 | 0.95 | 0.96 | 0.97 | 0.97 | 0.14 |

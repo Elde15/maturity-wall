@@ -173,9 +173,12 @@ CATALOG: list[Feature] = [
             lag="as f_ust10", clip=(-0.03, 0.04)),
     Feature("f_curve_10y2y", MKT, "10-year minus 2-year Treasury yield", "rate", ("FRED DGS10", "FRED DGS2"),
             lag="as f_ust10", clip=(-0.02, 0.03)),
-    Feature("f_cap_rate_benchmark", MKT, "Survey cap rate for the property type, latest edition published on or "
-            "before T", "rate", ("cap rate surveys",), lag="edition publication date", tags=("needs_cap_rates",),
-            clip=(0.03, 0.12)),
+    Feature("f_cap_rate_benchmark", MKT, "National cap rate for the property type: CBRE survey averages through "
+            "H2 2019 (retail H1 2022), carried forward by CoStar's monthly changes, the latest value published on or "
+            "before T; none for self-storage, and lodging lapses two years after its last survey period (D048)",
+            "rate", ("config/cap_rates.csv",), lag="survey value from its publication date",
+            nulls="null for self-storage and other types, and when the latest value describes a period more than "
+            "two years before T", tags=("needs_cap_rates",), clip=(0.03, 0.12)),
     Feature("f_rent_growth_yoy", MKT, "Zillow Observed Rent Index (all homes), metro, 12-month change", "ratio",
             ("Zillow ZORI",), lag="month used from the end of the next month", clip=(-0.1, 0.2)),
     Feature("f_mf_rent_growth_yoy", MKT, "Zillow Observed Rent Index (multifamily), metro, 12-month change",

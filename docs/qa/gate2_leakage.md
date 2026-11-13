@@ -7,7 +7,7 @@ Generated 2026-11-13 by `python -m mwall features --audit`. Rules: SOP section 9
 | check | result | evidence |
 | --- | --- | --- |
 | No feature uses an outcome field as input | PASS | 69 catalog entries checked against 12 outcome fields |
-| Market values were published on or before the snapshot date | PASS | `asof_treasury`: 0 later of 1,102,379 joined; `asof_zori`: 0 later of 977,925 joined; `asof_zori_mf`: 0 later of 948,658 joined; `asof_qcew`: 0 later of 1,004,721 joined; `asof_qcew_office`: 0 later of 789,808 joined; `asof_permits`: 0 later of 950,963 joined; `asof_spread`: 0 later of 1,102,379 joined |
+| Market values were published on or before the snapshot date | PASS | `asof_treasury`: 0 later of 1,102,379 joined; `asof_zori`: 0 later of 977,925 joined; `asof_zori_mf`: 0 later of 948,658 joined; `asof_qcew`: 0 later of 1,004,721 joined; `asof_qcew_office`: 0 later of 789,808 joined; `asof_permits`: 0 later of 950,963 joined; `asof_cap_rate`: 0 later of 774,913 joined; `asof_spread`: 0 later of 1,102,379 joined |
 | Truncation replay has power: a deliberately leaky canary feature is caught | PASS | the canary (each loan's last balance in the data) changed in 39,170 row comparisons |
 | Truncation replay: features unchanged when later filings are removed | PASS | 600 loans (seed 7), cuts 2019-12-31, 2021-12-31, 2023-06-30, 2025-06-30, 64,144 row comparisons x 44 features |
 | Labeled months are performing at T, so the label window starts after the status it sees | PASS | 100.0% of performing months are current or under 30 days late; the tier 2 window counts only events in later filings |

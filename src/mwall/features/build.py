@@ -124,11 +124,15 @@ def attach_refi(d: pd.DataFrame, f: pd.DataFrame, log=print) -> pd.DataFrame:
     """SOP 12 step A on unstressed NOI, base scenario. Needs config/lender_params.csv; the cap-rate
     benchmark adds the value constraint when config/cap_rates.csv exists."""
     if CAP_RATES.exists():
-        cr = pd.read_csv(CAP_RATES, parse_dates=["publication_date"])
+        from mwall.features.caprates import MAX_AGE_DAYS
+
+        cr = pd.read_csv(CAP_RATES, parse_dates=["publication_date", "period_date"])
         cr = cr.rename(columns={"publication_date": "available"})
-        d2 = market.asof(d, cr, ["cap_rate"], by="property_group", prefix="cr_")
-        f["f_cap_rate_benchmark"] = d2["cr_cap_rate"]
-        f["asof_cap_rate"] = d2["cr_asof"]
+        d2 = market.asof(d, cr, ["cap_rate", "period_date"], by="property_group", prefix="cr_")
+        # a survey value lapses two years after the period it describes (lodging has no source after 2019)
+        fresh = (d["snapshot_date"] - d2["cr_period_date"]).dt.days <= MAX_AGE_DAYS
+        f["f_cap_rate_benchmark"] = d2["cr_cap_rate"].where(fresh)
+        f["asof_cap_rate"] = d2["cr_asof"].where(fresh)
         f["f_value_model"] = (d["noi"] / f["f_cap_rate_benchmark"]).where(d["noi"] > 0)
         f["f_ltv_model"] = (d["wl_balance"] / f["f_value_model"]).where(f["f_value_model"] > 0)
     else:

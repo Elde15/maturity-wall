@@ -281,7 +281,8 @@ def test_refinance_features_on_hand_parameters(tmp_path, monkeypatch):
                   "commercial,2022Q3,2022-08-15,160\ncommercial,2023Q1,2023-05-15,250\n")
     monkeypatch.setattr(build, "LENDER_SPREADS", sp)
     cr = tmp_path / "cap_rates.csv"
-    cr.write_text("property_group,publication_date,cap_rate\noffice,2022-08-15,0.075\noffice,2023-08-15,0.09\n")
+    cr.write_text("property_group,period_date,publication_date,cap_rate\noffice,2022-06-30,2022-08-15,0.075\n"
+                  "office,2023-06-30,2023-08-15,0.09\n")
     monkeypatch.setattr(build, "LENDER_PARAMS", lp)
     monkeypatch.setattr(build, "CAP_RATES", cr)
     d = _frame({})
@@ -319,3 +320,24 @@ def test_every_catalog_feature_has_a_unit_test():
     passthrough = {"property_group", "prop_state", "prop_type_code", "delinquency_bucket"}  # filing fields, Gate 1 tests
     missing = [ft.name for ft in CATALOG if ft.name not in passthrough and f'"{ft.name}"' not in src]
     assert not missing, missing
+
+
+def test_cap_rate_survey_periods_and_late_publications():
+    from mwall.features.caprates import period_date
+
+    assert period_date("H1 2016") == pd.Timestamp("2016-06-30") and period_date("H2 2019") == pd.Timestamp("2019-12-31")
+    assert period_date("2021Q3") == pd.Timestamp("2021-09-30") and period_date("2023-01") == pd.Timestamp("2023-01-31")
+    assert period_date("2021-12-18") == pd.Timestamp("2021-12-18") and pd.isna(period_date("2017Q1-Q3 (average)"))
+
+
+def test_cap_rate_benchmark_lapses_two_years_after_its_period(tmp_path, monkeypatch):
+    from mwall.features import build
+
+    cr = tmp_path / "cap_rates.csv"
+    cr.write_text("property_group,period_date,publication_date,cap_rate\nlodging,2019-12-31,2020-01-31,0.0827\n")
+    monkeypatch.setattr(build, "CAP_RATES", cr)
+    monkeypatch.setattr(build, "LENDER_PARAMS", tmp_path / "absent.csv")
+    d = _frame({"property_group": "lodging", "snapshot_date": pd.Timestamp("2021-06-28")},
+               {"property_group": "lodging", "snapshot_date": pd.Timestamp("2022-03-28")})
+    f = build.attach_refi(d, loan.compute(d), log=lambda m: None)
+    assert f.loc[0, "f_cap_rate_benchmark"] == pytest.approx(0.0827) and np.isnan(f.loc[1, "f_cap_rate_benchmark"])

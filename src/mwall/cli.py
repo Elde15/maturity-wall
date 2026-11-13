@@ -64,7 +64,7 @@ def cmd_loandetail(args) -> None:
         from mwall.ingest import loan_detail as ld
         from mwall.ingest.sec_client import SecClient
 
-        agents = None if args.all_agents else ld.PILOT_AGENTS
+        agents = None if args.all_agents else (tuple(args.agent) if args.agent else ld.PILOT_AGENTS)
         ld.fetch(SecClient(rate=args.rate), workers=args.workers, agents=agents, budget_s=args.budget_s, log=_log)
     if args.parse:
         from mwall.parse import loan_detail as pld
@@ -190,6 +190,7 @@ def main(argv: list[str] | None = None) -> None:
     s.add_argument("--fetch", action="store_true")
     s.add_argument("--parse", action="store_true")
     s.add_argument("--all-agents", action="store_true", help="beyond the Computershare pilot")
+    s.add_argument("--agent", action="append", help="fetch statements filed by this agent (accession prefix)")
     s.add_argument("--rate", type=float, default=7.0)
     s.add_argument("--workers", type=int, default=8)
     s.add_argument("--budget-s", type=float, default=None)
