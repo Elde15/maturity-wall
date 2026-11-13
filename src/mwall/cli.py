@@ -70,6 +70,7 @@ def cmd_loandetail(args) -> None:
         from mwall.parse import loan_detail as pld
 
         pld.run(log=_log)
+        pld.maturity_outcomes(log=_log)
 
 
 def cmd_panel(args) -> None:
