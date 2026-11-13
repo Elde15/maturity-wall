@@ -53,9 +53,11 @@ CATALOG: list[Feature] = [
     Feature("f_ltv_model", LEV, "Whole-loan balance / f_value_model (tests H4)", "ratio",
             ("wl_balance_est", "fin_noi_annual", "cap_rate_benchmark"), lag="cap rate survey from its "
             "publication date", tags=("needs_cap_rates",), clip=(0, 2)),
-    Feature("f_refi_rate", LEV, "Treasury yield at T (tenor per type) + lender spread for the type", "rate",
-            ("DGS5/DGS7/DGS10", "lender spread"), lag="Treasury from the next day; spread is a fixed cited "
-            "parameter", tags=("needs_lender_params",), clip=(0, 0.12)),
+    Feature("f_refi_rate", LEV, "10-year Treasury at T + CBRE's quarterly permanent-loan spread (commercial or "
+            "multifamily series), the latest published by T, + a fixed property-type premium (config/"
+            "lender_params.csv, base scenario)", "rate", ("DGS10", "config/lender_spreads.csv", "spread premium"),
+            lag="Treasury from the next day; spread from its publication date; premium is a fixed cited parameter",
+            tags=("needs_lender_params",), clip=(0, 0.12)),
     Feature("f_refi_dscr", LEV, "Annualized NOI / (whole-loan balance x loan constant at f_refi_rate and the "
             "type's amortization)", "x", ("fin_noi_annual", "wl_balance_est", "f_refi_rate"),
             lag="as f_refi_rate", tags=("needs_lender_params",), clip=(0, 5)),

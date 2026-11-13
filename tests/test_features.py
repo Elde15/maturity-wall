@@ -272,8 +272,14 @@ def test_refinance_features_on_hand_parameters(tmp_path, monkeypatch):
     from mwall.features import build
 
     lp = tmp_path / "lender_params.csv"
-    lp.write_text("property_group,scenario,ltv_max,dscr_min,dy_min,amort_years,spread_bps,treasury_tenor\n"
-                  "office,base,0.65,1.35,0.08,30,200,10\nother,base,0.6,1.4,0.1,25,300,10\n")
+    lp.write_text("property_group,scenario,ltv_max,dscr_min,dy_min,amort_years,treasury_tenor,spread_series,"
+                  "spread_premium_bps\noffice,base,0.65,1.35,0.08,30,10,commercial,40\n"
+                  "other,base,0.6,1.4,0.1,25,10,commercial,0\n")
+    sp = tmp_path / "lender_spreads.csv"
+    # two quarters published the same day: the later quarter wins; a quarter published after T is not used
+    sp.write_text("series,as_of_quarter,publication_date,spread_bps\ncommercial,2022Q2,2022-08-15,150\n"
+                  "commercial,2022Q3,2022-08-15,160\ncommercial,2023Q1,2023-05-15,250\n")
+    monkeypatch.setattr(build, "LENDER_SPREADS", sp)
     cr = tmp_path / "cap_rates.csv"
     cr.write_text("property_group,publication_date,cap_rate\noffice,2022-08-15,0.075\noffice,2023-08-15,0.09\n")
     monkeypatch.setattr(build, "LENDER_PARAMS", lp)
@@ -282,7 +288,7 @@ def test_refinance_features_on_hand_parameters(tmp_path, monkeypatch):
     d["cbsa_code"] = "31080"
     d, f = build.attach_market(d, loan.compute(d), _mk())
     r = build.attach_refi(d, f, log=lambda m: None).iloc[0]
-    # rate 4.00% + 200 bp = 6%; 30-year constant 0.0719461
+    # rate 4.00% + 160 bp CBRE (2022Q3, the latest published by T) + 40 bp office premium = 6%; constant 0.0719461
     assert r["f_refi_rate"] == pytest.approx(0.06) and r["f_rate_shock"] == pytest.approx(0.015)
     assert r["f_refi_dscr"] == pytest.approx(1.250937, rel=1e-5)
     assert r["f_refi_dy_cushion"] == pytest.approx(0.01)

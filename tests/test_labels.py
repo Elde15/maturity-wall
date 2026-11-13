@@ -103,3 +103,14 @@ def test_modification_indicator_needs_some_detail(tmp_path, monkeypatch):
     out = load_rows().set_index("root_key")
     assert not out.loc["1:1", "mod_this_period"] and out.loc["1:1", "mod_indicator_raw"]
     assert out.loc["1:2", "mod_this_period"]
+
+
+def test_gold_match_key_joins_pieces_and_separates_siblings():
+    from mwall.panel.gold import match_key, payoff_month
+
+    k = match_key(pd.Series(pd.to_datetime(["2026-07-01", "2026-07-01", "2026-07-01"])),
+                  pd.Series([0.0414, 0.04140000001, 0.0414]), pd.Series(["CA", "ca", "NY"]),
+                  pd.Series(["Oakland", "OAKLAND ", "Oakland"]))
+    assert k[0] == k[1] != k[2]            # same loan across trusts; a different state is a different loan
+    pm = payoff_month(pd.Series(pd.to_datetime(["2026-04-10", "2026-04-17", None])))
+    assert pm.tolist() == ["2026-04", "2026-04", "open"]   # siblings that pay at different times stay apart

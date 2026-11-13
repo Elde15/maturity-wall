@@ -8,25 +8,25 @@ Vintage-2016 trusts with no EX-102 still file a monthly 10-D whose statement car
 
 ## Maturity outcomes
 
-Loans whose original maturity plus 90 days falls inside the statement window: 1,178. Outcomes: {'paid': 904, 'failed': 197, 'excluded_early_payoff': 44, 'excluded_early_liquidation': 28, 'unknown': 5}. Same rules as the XML gold set: paid needs a payoff code, or a row that pays the whole balance as scheduled principal (a balloon paid on time never appears in Prepayment Detail), no more than 12 months before maturity and no later than 90 days after it; failed means a balance still outstanding after the grace window, an adjusted maturity date later than the original, or a disposition or discounted payoff.
+Loans whose original maturity plus 90 days falls inside the statement window: 1,196. Outcomes: {'paid': 916, 'failed': 203, 'excluded_early_payoff': 44, 'excluded_early_liquidation': 28, 'unknown': 5}. Same rules as the XML gold set: paid needs a payoff code, or a row that pays the whole balance as scheduled principal (a balloon paid on time never appears in Prepayment Detail), no more than 12 months before maturity and no later than 90 days after it; failed means a balance still outstanding after the grace window, an adjusted maturity date later than the original, or a disposition or discounted payoff.
 
 | maturity_year | loans | failed |
 | --- | --- | --- |
-| 2021 | 4 | 3.00 |
+| 2021 | 3 | 2.00 |
 | 2022 | 13 | 4.00 |
 | 2023 | 9 | 1.00 |
 | 2024 | 1 | 1.00 |
-| 2025 | 355 | 53.00 |
-| 2026 | 719 | 135.00 |
+| 2025 | 361 | 58.00 |
+| 2026 | 732 | 137.00 |
 
 | prop_type | loans | failed | rate |
 | --- | --- | --- | --- |
-| RT | 317 | 67.00 | 0.21 |
-| LO | 174 | 31.00 | 0.18 |
-| OF | 173 | 66.00 | 0.38 |
+| RT | 329 | 71.00 | 0.22 |
+| OF | 175 | 67.00 | 0.38 |
+| LO | 173 | 30.00 | 0.17 |
 | MF | 168 | 7.00 | 0.04 |
-| SS | 79 | 0.00 | 0.00 |
-| IN | 56 | 1.00 | 0.02 |
+| SS | 81 | 0.00 | 0.00 |
+| IN | 58 | 3.00 | 0.05 |
 | MH | 43 | 1.00 | 0.02 |
 | MU | 40 | 9.00 | 0.23 |
 | 98 | 2 | 1.00 | 0.50 |

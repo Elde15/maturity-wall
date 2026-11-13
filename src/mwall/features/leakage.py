@@ -146,8 +146,14 @@ def audit(log=print) -> bool:
           "| Market series are today's vintage (Zillow, QCEW, permits and housing estimates are revised after first "
           "release) | `features/market.py` | a small look-ahead through revisions; Treasury yields are not revised | "
           "all market features |",
-          "| Lender parameters are fixed cited constants, not dated series | `config/lender_params.csv` | the "
-          "refinance features move with the Treasury yield only | refinance features |", ""]
+          "| Lender limits (LTV, DSCR, debt yield, amortization) and property-type spread premiums are fixed cited "
+          "constants; most sources date from 2022 to 2026, with the OCC handbook (2013) as the pre-2017 anchor | "
+          "`config/lender_params.csv` | a structural assumption applied to every year, not data about any loan; "
+          "the spread itself is CBRE's dated series, used from its publication date (`asof_spread`) | refinance "
+          "features |",
+          "| CBRE published no spread level for 2016Q2 to 2018Q1 and 2018Q3 to 2020Q1, so the last published value "
+          "carries forward | `config/lender_spreads.csv` | stale, not forward-looking: 2017 and 2018 refinance rates "
+          "use the wide 2016Q1 spread | refinance features in those years |", ""]
     (paths.DOCS_DIR / "qa" / "gate2_leakage.md").write_text("\n".join(L), encoding="utf-8")
     log(f"leakage audit: {'PASS' if passed else 'FAIL'}")
     return passed

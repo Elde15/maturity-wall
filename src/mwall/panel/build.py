@@ -215,6 +215,9 @@ def build(log=print) -> pd.DataFrame:
     t1.to_parquet(out / "tier1.parquet", index=False)
     t3.to_parquet(out / "tier3.parquet", index=False)
     report(p, t1, t3, log)
+    from mwall.panel import gold
+
+    gold.build(log)
     log(f"panel built in {(dt.datetime.now() - t0).seconds}s")
     return p
 
@@ -231,6 +234,9 @@ def report_from_disk(log=print) -> None:
             "ev_modification", "ev_liquidation"]
     p = pd.read_parquet(paths.PANEL_DIR / "loan_month.parquet", columns=cols)
     report(p, pd.read_parquet(paths.PANEL_DIR / "tier1.parquet"), pd.read_parquet(paths.PANEL_DIR / "tier3.parquet"), log)
+    from mwall.panel import gold
+
+    gold.build(log)
 
 
 def report(p: pd.DataFrame, t1: pd.DataFrame, t3: pd.DataFrame, log=print) -> None:

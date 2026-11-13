@@ -231,7 +231,11 @@ def maturity_outcomes(log=print) -> pd.DataFrame:
     liq = P[code.map(lambda c: any(t in c for t in LIQ_TEXT))].groupby("key")["distribution_date"].min()
     last_stmt = L.groupby("trust_cik")["distribution_date"].max()
     g = L.sort_values("distribution_date").groupby("key")
-    d = pd.DataFrame({"trust_cik": g["trust_cik"].first(), "maturity": g["original_maturity_date"].first(),
+    # as in the XML tier 1: a loan with an anticipated repayment date is judged at that date (D046)
+    ard = pd.to_datetime(g["anticipated_repay_date"].first())
+    orig = pd.to_datetime(g["original_maturity_date"].first())
+    d = pd.DataFrame({"trust_cik": g["trust_cik"].first(), "maturity": ard.fillna(orig),
+                      "maturity_is_ard": ard.notna(), "original_maturity": orig,
                       "first_seen": g["distribution_date"].min(), "last_seen": g["distribution_date"].max(),
                       "max_adjusted_maturity": g["adjusted_maturity_date"].max(), "prop_type": g["prop_type"].first(),
                       "state": g["state"].first(), "city": g["city"].first(), "gross_rate": g["gross_rate"].first(),

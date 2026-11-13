@@ -27,6 +27,7 @@ PANEL_COLS = ["trust_cik", "root_key", "accession", "period_end", "filing_date",
               "in_special_servicing", "ev_modification", "whole_loan_id", "is_representative", "performing",
               "y_distress_12m"]
 LENDER_PARAMS = paths.CONFIG_DIR / "lender_params.csv"
+LENDER_SPREADS = paths.CONFIG_DIR / "lender_spreads.csv"
 CAP_RATES = paths.CONFIG_DIR / "cap_rates.csv"
 TENOR = {5: "DGS5", 7: "DGS7", 10: "DGS10"}
 # a market value older than this (counted from its publication date) is too stale to use
@@ -142,7 +143,15 @@ def attach_refi(d: pd.DataFrame, f: pd.DataFrame, log=print) -> pd.DataFrame:
     ust = pd.Series(np.nan, index=d.index)
     for tenor, col in TENOR.items():
         ust = ust.where(par["treasury_tenor"].ne(tenor), d[f"tsy_{col}"] / 100)
-    rate = ust + par["spread_bps"] / 10_000
+    # the spread is CBRE's quarterly series as of its publication date, plus a fixed property-type premium
+    sp = pd.read_csv(LENDER_SPREADS, parse_dates=["publication_date"]).sort_values(
+        ["series", "publication_date", "as_of_quarter"])
+    sp = sp.drop_duplicates(["series", "publication_date"], keep="last").rename(
+        columns={"publication_date": "available", "series": "spread_series"})
+    d2 = market.asof(d.assign(spread_series=par["spread_series"].values), sp, ["spread_bps"], by="spread_series",
+                     prefix="sp_")
+    f["asof_spread"] = d2["sp_asof"]
+    rate = ust + (d2["sp_spread_bps"] + par["spread_premium_bps"]) / 10_000
     k = loan.loan_constant(rate, par["amort_years"])
     B = d["wl_balance"].where(d["wl_balance"] > 0)
     noi = d["noi"]

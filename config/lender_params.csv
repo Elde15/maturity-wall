@@ -1,0 +1,26 @@
+property_group,scenario,ltv_max,dscr_min,dy_min,amort_years,treasury_tenor,spread_series,spread_premium_bps,src_ltv,src_dscr,src_dy,src_amort,src_spread,notes
+multifamily,base,0.75,1.25,0.09,30,10,multifamily,0,26;103,27;101,28,4,lender_spreads.csv,
+office,base,0.75,1.25,0.10,25,10,commercial,40,26;103,27;101,30;3,5,lender_spreads.csv;77;78;152;158,premium: CRED iQ office spread less CBRE commercial for the same quarter (2025Q2 +44; 2026Q1 +39)
+retail,base,0.75,1.25,0.10,25,10,commercial,0,26;103,27;101,31;3,6,lender_spreads.csv;75;76;152;158,premium: CRED iQ retail less CBRE commercial (2025Q2 0; 2026Q1 -5)
+industrial,base,0.75,1.25,0.10,25,10,commercial,-20,26;103,27;101,32;3,7,lender_spreads.csv;73;74;152;158,premium: CRED iQ industrial less CBRE commercial (2025Q2 -19; 2026Q1 -19)
+lodging,base,0.75,1.30,0.12,20,10,commercial,0,26;103,49;53,33,8,lender_spreads.csv,no lodging spread premium found; CMBS coupons in mid-2025 suggest roughly +70 over office (rows 91; 95) but are not a spread
+self_storage,base,0.75,1.25,0.09,25,10,commercial,0,26;103,27;101,29;41,44,lender_spreads.csv,no self-storage spread premium found
+mixed_use,base,0.75,1.25,0.10,25,10,commercial,0,26;103,27;101,3,5,lender_spreads.csv,debt yield and amortization by analogy to office and retail; no mixed-use source
+other,base,0.75,1.25,0.10,25,10,commercial,0,26;103,27;101,3,5,lender_spreads.csv,health care and other types: mixed-use parameters by analogy
+multifamily,lender_2025,0.75,1.25,0.0825,30,10,multifamily,0,26;103,27;101,34,4,lender_spreads.csv,Greystone floor schedule from May 2025
+office,lender_2025,0.75,1.25,0.125,25,10,commercial,40,26;103,27;101,36,5,lender_spreads.csv;77;78;152;158,Greystone floor schedule from May 2025
+retail,lender_2025,0.75,1.25,0.09,25,10,commercial,0,26;103,27;101,37,6,lender_spreads.csv;75;76;152;158,Greystone floor schedule from May 2025
+industrial,lender_2025,0.75,1.25,0.09,25,10,commercial,-20,26;103,27;101,38,7,lender_spreads.csv;73;74;152;158,Greystone floor schedule from May 2025
+lodging,lender_2025,0.75,1.30,0.12,20,10,commercial,0,26;103,49;53,39,8,lender_spreads.csv,Greystone floor schedule from May 2025
+self_storage,lender_2025,0.75,1.25,0.0825,25,10,commercial,0,26;103,27;101,35,44,lender_spreads.csv,Greystone floor schedule from May 2025
+mixed_use,lender_2025,0.75,1.25,0.10,25,10,commercial,0,26;103,27;101,3,5,lender_spreads.csv,as base
+other,lender_2025,0.75,1.25,0.10,25,10,commercial,0,26;103,27;101,3,5,lender_spreads.csv,as base
+multifamily,stress,0.75,1.40,0.09,30,10,multifamily,0,26;103,102,28,4,lender_spreads.csv,Fitch refinance test for an interest-only loan: 1.40x
+office,stress,0.75,1.40,0.10,25,10,commercial,40,26;103,102,30;3,5,lender_spreads.csv;77;78;152;158,Fitch interest-only test 1.40x
+retail,stress,0.75,1.40,0.10,25,10,commercial,0,26;103,102,31;3,6,lender_spreads.csv;75;76;152;158,Fitch interest-only test 1.40x
+industrial,stress,0.75,1.40,0.10,25,10,commercial,-20,26;103,102,32;3,7,lender_spreads.csv;73;74;152;158,Fitch interest-only test 1.40x
+lodging,stress,0.75,1.50,0.12,20,10,commercial,0,26;103,49,33,8,lender_spreads.csv,HVS upper end 1.50x
+self_storage,stress,0.75,1.40,0.09,25,10,commercial,0,26;103,102,29;41,44,lender_spreads.csv,Fitch interest-only test 1.40x
+mixed_use,stress,0.75,1.40,0.10,25,10,commercial,0,26;103,102,3,5,lender_spreads.csv,Fitch interest-only test 1.40x
+other,stress,0.75,1.40,0.10,25,10,commercial,0,26;103,102,3,5,lender_spreads.csv,Fitch interest-only test 1.40x
+multifamily,agency_mf,0.80,1.25,,30,10,multifamily,0,10;14;16;19,11;15;17;20,,13;18;21,lender_spreads.csv,Freddie Mac and Fannie Mae terms; agencies size on LTV and DSCR without a debt-yield floor
