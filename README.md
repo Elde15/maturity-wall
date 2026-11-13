@@ -4,7 +4,7 @@ Which US commercial mortgages won't refinance at today's rates, and what could a
 
 This repo answers that from the loan-level data that registered CMBS trusts file with the SEC every month (Form ABS-EE, exhibit EX-102). It ranks loans by the probability they fail at maturity, sizes the refinance gap the way a lender would, and underwrites an indicative bid for the collateral. Scores are screening aids under stated assumptions, not valuations or investment advice.
 
-**Status (November 2026): Gate 1 of 6 (data) passed on the full universe.** The ingest, parser, cleaning layer and QA are built and tested; the sign-off and the limitations it publishes are in `docs/qa/gate1_signoff.md`. Features and labels (Gate 2) come next. The plan is `docs/SOP.md`; every departure from it is in `docs/decisions.md`.
+**Status (November 2026): Gates 1 (data) and 2 (features and labels) of 6 passed.** Sign-offs and the limitations they publish: `docs/qa/gate1_signoff.md`, `docs/qa/gate2_signoff.md`. The feature dictionary is `docs/features.md` and the label definitions are `docs/labels.md`. Models (Gate 3) come next. The plan is `docs/SOP.md`; every departure from it is in `docs/decisions.md`.
 
 ## What's in the data so far
 
@@ -38,6 +38,9 @@ uv run python -m mwall tend        # 10-D statements for the balance check
 uv run python -m mwall parse && uv run python -m mwall clean && uv run python -m mwall wholeloans
 uv run python -m mwall geo         # Census geocoder + county and metro crosswalks, cached
 uv run python -m mwall qa
+uv run python -m mwall loandetail --fetch --parse --agent 0001888524 --agent 0001628297   # vintage-2016 10-D loan tables
+uv run python -m mwall panel       # loan-month panel, tier 1-3 labels, combined tier 1 gold set
+uv run python -m mwall features --fetch --audit   # market series, feature table, dictionary, plots, leakage audit
 ```
 
 `make data` runs the same sequence where `make` is available.

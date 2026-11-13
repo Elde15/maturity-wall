@@ -49,7 +49,7 @@ CATALOG: list[Feature] = [
             "or before T", "flag", ("mostRecentValuationDate", "valuationSecuritizationDate"), kind="bool"),
     Feature("f_value_model", LEV, "Annualized NOI / benchmark cap rate for the property type at T", "USD",
             ("fin_noi_annual", "cap_rate_benchmark"), lag="cap rate survey from its publication date",
-            tags=("needs_cap_rates",), clip=None),
+            tags=("needs_cap_rates",), clip=(0, 150_000_000)),
     Feature("f_ltv_model", LEV, "Whole-loan balance / f_value_model (tests H4)", "ratio",
             ("wl_balance_est", "fin_noi_annual", "cap_rate_benchmark"), lag="cap rate survey from its "
             "publication date", tags=("needs_cap_rates",), clip=(0, 2)),
