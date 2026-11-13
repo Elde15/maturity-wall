@@ -76,7 +76,23 @@ def cmd_loandetail(args) -> None:
 def cmd_panel(args) -> None:
     from mwall.panel import build
 
-    build.build(log=_log)
+    if args.report_only:
+        build.report_from_disk(log=_log)
+    else:
+        build.build(log=_log)
+
+
+def cmd_features(args) -> None:
+    from mwall.features import build, leakage, market, report
+
+    if args.fetch:
+        market.fetch(refresh=args.refresh, log=_log)
+    if not (args.audit_only or args.report_only):
+        build.build(log=_log)
+    if not args.audit_only:
+        report.report(log=_log)
+    if args.audit or args.audit_only:
+        leakage.audit(log=_log)
 
 
 def cmd_census(args) -> None:
@@ -159,7 +175,16 @@ def main(argv: list[str] | None = None) -> None:
     s.set_defaults(func=cmd_download)
 
     s = sub.add_parser("panel", help="loan-month panel and tier 1-3 outcome labels (docs/labels.md)")
+    s.add_argument("--report-only", action="store_true", help="rewrite docs/qa/gate2_labels.md from saved tables")
     s.set_defaults(func=cmd_panel)
+
+    s = sub.add_parser("features", help="feature table, dictionary and distribution plots (SOP 9)")
+    s.add_argument("--fetch", action="store_true", help="download market series not yet cached")
+    s.add_argument("--refresh", action="store_true", help="with --fetch, re-pull series that update")
+    s.add_argument("--audit", action="store_true", help="also run the leakage audit")
+    s.add_argument("--audit-only", action="store_true")
+    s.add_argument("--report-only", action="store_true", help="rewrite the dictionary and QA report only")
+    s.set_defaults(func=cmd_features)
 
     s = sub.add_parser("loandetail", help="vintage-2016 10-D loan detail tables (D033 pilot): fetch and/or parse")
     s.add_argument("--fetch", action="store_true")

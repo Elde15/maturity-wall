@@ -56,7 +56,14 @@ def load_rows() -> pd.DataFrame:
                sum(realizedLossToTrustAmount) realized_loss,
                max(mostRecentSpecialServicerTransferDate) ss_transfer_date,
                max(mostRecentMasterServicerReturnDate) ss_return_date,
-               bool_or(coalesce(reportPeriodModificationIndicator, false)) mod_this_period,
+               -- the indicator counts only with some detail of the modification (D045): one servicer (NCB) sets
+               -- it on co-op loans with no code, date or new terms, in a yearly pattern
+               bool_or(coalesce(reportPeriodModificationIndicator, false) and (
+                   modificationCode is not null or lastModificationDate is not null
+                   or postModificationInterestPercentage is not null or postModificationPaymentAmount is not null
+                   or postModificationMaturityDate is not null
+                   or postModificationAmortizationPeriodAmount is not null)) mod_this_period,
+               bool_or(coalesce(reportPeriodModificationIndicator, false)) mod_indicator_raw,
                max(lastModificationDate) last_mod_date,
                max(maturityDate) maturity_date,
                max(hyperAmortizingDate) ard_date,
@@ -121,6 +128,10 @@ def tier2(p: pd.DataFrame) -> pd.DataFrame:
     y = np.where(p["next_distress"].notna() & (p["next_distress"] <= end), 1.0,
                  np.where(full | (p["next_payoff"].notna() & (p["next_payoff"] <= end)), 0.0, np.nan))
     p["y_distress_12m"] = np.where(p["performing"], y, np.nan)
+    # near the end of the data a month can be labeled early only when an event has already happened, which
+    # leans recent labels positive; models train and test only on months whose whole window is in the data
+    data_end = p.groupby("trust_cik")["period_end"].transform("max")
+    p["label_window_complete"] = p["period_end"] + pd.Timedelta(days=HORIZON_DAYS - SLACK_DAYS) <= data_end
     return p
 
 
@@ -208,12 +219,28 @@ def build(log=print) -> pd.DataFrame:
     return p
 
 
+def _counts(t: pd.DataFrame) -> pd.DataFrame:
+    """Event counts are sums of 0/1 labels; print them as integers."""
+    return t.astype({c: "int64" for c in ("events", "failed") if c in t.columns})
+
+
+def report_from_disk(log=print) -> None:
+    cols = ["root_key", "trust_cik", "whole_loan_id", "is_representative", "y_distress_12m", "label_window_complete",
+            "property_group",
+            "performing", "defeased", "n_blank_balance", "ev_distress", "ev_dq60", "ev_matured_np", "ev_ss_transfer",
+            "ev_modification", "ev_liquidation"]
+    p = pd.read_parquet(paths.PANEL_DIR / "loan_month.parquet", columns=cols)
+    report(p, pd.read_parquet(paths.PANEL_DIR / "tier1.parquet"), pd.read_parquet(paths.PANEL_DIR / "tier3.parquet"), log)
+
+
 def report(p: pd.DataFrame, t1: pd.DataFrame, t3: pd.DataFrame, log=print) -> None:
     from mwall.clean.qa_report import md_table
 
     trusts = pd.read_parquet(paths.META_DIR / "trusts.parquet")[["trust_cik", "vintage"]]
+    trusts["vintage"] = pd.to_numeric(trusts["vintage"], errors="coerce").astype("Int64")
     rep = p[p["is_representative"]].merge(trusts, on="trust_cik", how="left")
-    t2 = rep[rep["y_distress_12m"].notna()]
+    t2 = rep[rep["y_distress_12m"].notna() & rep["label_window_complete"]]
+    t2_partial = rep[rep["y_distress_12m"].notna() & ~rep["label_window_complete"]]
     by_type = t2.groupby("property_group", dropna=False)["y_distress_12m"].agg(rows="size", events="sum", rate="mean")
     by_vint = t2.groupby("vintage", dropna=False)["y_distress_12m"].agg(rows="size", events="sum", rate="mean")
     t1 = t1.merge(trusts, on="trust_cik", how="left")
@@ -224,6 +251,15 @@ def report(p: pd.DataFrame, t1: pd.DataFrame, t3: pd.DataFrame, log=print) -> No
     lab = t1u[t1u["y_fail"].notna()]
     t1_type = lab.groupby("property_group", dropna=False)["y_fail"].agg(loans="size", failed="sum", rate="mean")
     t1_year = lab.groupby(lab["maturity_eff"].dt.year)["y_fail"].agg(loans="size", failed="sum", rate="mean")
+    t1_vint = lab.groupby("vintage", dropna=False)["y_fail"].agg(loans="size", failed="sum", rate="mean")
+    t3 = t3.merge(trusts, on="trust_cik", how="left")
+    t3r = t3[~t3["flag_no_loss_reported"]] if len(t3) else t3
+    t3_type = t3.groupby("property_group", dropna=False).agg(
+        liquidated=("severity", "size"), loss_reported=("flag_no_loss_reported", lambda s: int((~s).sum())))
+    t3_type["median_severity"] = t3r.groupby("property_group", dropna=False)["severity"].median()
+    t3_vint = t3.groupby("vintage", dropna=False).agg(
+        liquidated=("severity", "size"), loss_reported=("flag_no_loss_reported", lambda s: int((~s).sum())))
+    t3_vint["median_severity"] = t3r.groupby("vintage", dropna=False)["severity"].median()
     ev_cols = ["ev_dq60", "ev_matured_np", "ev_ss_transfer", "ev_modification", "ev_liquidation"]
     first_ev = rep[rep["ev_distress"]]
     L = [
@@ -246,13 +282,19 @@ def report(p: pd.DataFrame, t1: pd.DataFrame, t3: pd.DataFrame, log=print) -> No
         "",
         "## Tier 2: distress within 12 months of a performing month",
         "",
-        f"- Labeled loan-months: {len(t2):,}; with an event in the next 12 months: {int(t2['y_distress_12m'].sum()):,} "
-        f"({100 * t2['y_distress_12m'].mean():.1f}%). Performing months censored (observation ends inside the "
-        f"window): {int((rep['performing'] & rep['y_distress_12m'].isna()).sum()):,}.",
+        f"- Labeled loan-months with the whole 12-month window inside the data: {len(t2):,}; with an event in the "
+        f"next 12 months: {int(t2['y_distress_12m'].sum()):,} ({100 * t2['y_distress_12m'].mean():.1f}%). Tables "
+        "below use these rows only.",
+        f"- Labeled months whose window runs past the end of the data: {len(t2_partial):,}, of which "
+        f"{int(t2_partial['y_distress_12m'].sum()):,} positive ({100 * t2_partial['y_distress_12m'].mean():.1f}%). "
+        "A month there gets a label early only if an event has already happened, so these are left out of model "
+        "training and testing.",
+        f"- Performing months censored (the loan's observation ends inside the window with no event): "
+        f"{int((rep['performing'] & rep['y_distress_12m'].isna()).sum()):,}.",
         "",
-        md_table(by_type.reset_index(), floatfmt=".3f"),
+        md_table(_counts(by_type).reset_index(), floatfmt=".3f"),
         "",
-        md_table(by_vint.reset_index(), floatfmt=".3f"),
+        md_table(_counts(by_vint).reset_index(), floatfmt=".3f"),
         "",
         "## Tier 1: maturity outcome (gold set)",
         "",
@@ -263,15 +305,21 @@ def report(p: pd.DataFrame, t1: pd.DataFrame, t3: pd.DataFrame, log=print) -> No
         f"extension at some point: {int(t1u['extended'].sum()):,}. Maturity taken from an anticipated repayment "
         f"date: {int(t1u['maturity_is_ard'].sum()):,}.",
         "",
-        md_table(t1_type.reset_index(), floatfmt=".3f"),
+        md_table(_counts(t1_type).reset_index(), floatfmt=".3f"),
         "",
-        md_table(t1_year.reset_index().rename(columns={"maturity_eff": "maturity_year"}), floatfmt=".3f"),
+        md_table(_counts(t1_year).reset_index().rename(columns={"maturity_eff": "maturity_year"}), floatfmt=".3f"),
+        "",
+        md_table(_counts(t1_vint).reset_index(), floatfmt=".3f"),
         "",
         "## Tier 3: loss severity",
         "",
         f"- Liquidated loan positions: {len(t3):,}; with a realized loss reported: "
         f"{int((~t3['flag_no_loss_reported']).sum()) if len(t3) else 0:,}. Median severity where reported: "
         f"{t3.loc[~t3['flag_no_loss_reported'], 'severity'].median() if len(t3) else float('nan'):.2f}.",
+        "",
+        md_table(t3_type.reset_index(), floatfmt=".3f"),
+        "",
+        md_table(t3_vint.reset_index(), floatfmt=".3f"),
         "",
     ]
     (paths.DOCS_DIR / "qa" / "gate2_labels.md").write_text("\n".join(L) + "\n", encoding="utf-8")

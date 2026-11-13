@@ -1,6 +1,6 @@
 # Gate 2 label counts
 
-Generated 2026-11-12 by `python -m mwall panel`. Definitions: `docs/labels.md`. Counts use one representative position per whole loan and month, so pari passu pieces in several trusts count once.
+Generated 2026-11-13 by `python -m mwall panel`. Definitions: `docs/labels.md`. Counts use one representative position per whole loan and month, so pari passu pieces in several trusts count once.
 
 ## Panel
 
@@ -14,38 +14,39 @@ Distress events by type (representative rows; one month can carry several):
 | ev_dq60 | 15007 |
 | ev_matured_np | 1509 |
 | ev_ss_transfer | 1504 |
-| ev_modification | 2251 |
+| ev_modification | 872 |
 | ev_liquidation | 5204 |
 
 ## Tier 2: distress within 12 months of a performing month
 
-- Labeled loan-months: 679,660; with an event in the next 12 months: 34,933 (5.1%). Performing months censored (observation ends inside the window): 119,617.
+- Labeled loan-months with the whole 12-month window inside the data: 676,532; with an event in the next 12 months: 18,067 (2.7%). Tables below use these rows only.
+- Labeled months whose window runs past the end of the data: 3,128, of which 1,434 positive (45.8%). A month there gets a label early only if an event has already happened, so these are left out of model training and testing.
+- Performing months censored (the loan's observation ends inside the window with no event): 119,617.
 
 | property_group | rows | events | rate |
 | --- | --- | --- | --- |
-| industrial | 47456 | 797.000 | 0.017 |
-| lodging | 77510 | 6167.000 | 0.080 |
-| mixed_use | 44172 | 1534.000 | 0.035 |
-| multifamily | 142519 | 18257.000 | 0.128 |
-| office | 115992 | 3874.000 | 0.033 |
-| other | 7030 | 225.000 | 0.032 |
-| retail | 186108 | 3794.000 | 0.020 |
-| self_storage | 58327 | 266.000 | 0.005 |
-|  | 546 | 19.000 | 0.035 |
+| industrial | 47190 | 699 | 0.015 |
+| lodging | 77116 | 5948 | 0.077 |
+| mixed_use | 43934 | 1387 | 0.032 |
+| multifamily | 141926 | 2495 | 0.018 |
+| office | 115362 | 3492 | 0.030 |
+| other | 6971 | 177 | 0.025 |
+| retail | 185225 | 3616 | 0.020 |
+| self_storage | 58265 | 235 | 0.004 |
+|  | 543 | 18 | 0.033 |
 
 | vintage | rows | events | rate |
 | --- | --- | --- | --- |
-| 2016.000 | 24261 | 957.000 | 0.039 |
-| 2017.000 | 179169 | 10233.000 | 0.057 |
-| 2018.000 | 136063 | 8628.000 | 0.063 |
-| 2019.000 | 143486 | 8004.000 | 0.056 |
-| 2020.000 | 65329 | 2467.000 | 0.038 |
-| 2021.000 | 65177 | 2822.000 | 0.043 |
-| 2022.000 | 31655 | 549.000 | 0.017 |
-| 2023.000 | 13175 | 597.000 | 0.045 |
-| 2024.000 | 16131 | 434.000 | 0.027 |
-| 2025.000 | 5205 | 233.000 | 0.045 |
-| 2026.000 | 9 | 9.000 | 1.000 |
+| 2016 | 23678 | 842 | 0.036 |
+| 2017 | 178444 | 5373 | 0.030 |
+| 2018 | 135718 | 4471 | 0.033 |
+| 2019 | 143140 | 4073 | 0.028 |
+| 2020 | 65198 | 1049 | 0.016 |
+| 2021 | 64820 | 851 | 0.013 |
+| 2022 | 31467 | 478 | 0.015 |
+| 2023 | 13024 | 548 | 0.042 |
+| 2024 | 15978 | 289 | 0.018 |
+| 2025 | 5065 | 93 | 0.018 |
 
 ## Tier 1: maturity outcome (gold set)
 
@@ -54,25 +55,57 @@ Distress events by type (representative rows; one month can carry several):
 
 | property_group | loans | failed | rate |
 | --- | --- | --- | --- |
-| industrial | 20 | 1.000 | 0.050 |
-| lodging | 75 | 26.000 | 0.347 |
-| mixed_use | 30 | 16.000 | 0.533 |
-| multifamily | 62 | 22.000 | 0.355 |
-| office | 130 | 76.000 | 0.585 |
-| other | 10 | 4.000 | 0.400 |
-| retail | 77 | 18.000 | 0.234 |
-| self_storage | 18 | 1.000 | 0.056 |
+| industrial | 20 | 1 | 0.050 |
+| lodging | 75 | 26 | 0.347 |
+| mixed_use | 30 | 16 | 0.533 |
+| multifamily | 62 | 22 | 0.355 |
+| office | 130 | 76 | 0.585 |
+| other | 10 | 4 | 0.400 |
+| retail | 77 | 18 | 0.234 |
+| self_storage | 18 | 1 | 0.056 |
 
 | maturity_year | loans | failed | rate |
 | --- | --- | --- | --- |
-| 2021 | 18 | 1.000 | 0.056 |
-| 2022 | 106 | 27.000 | 0.255 |
-| 2023 | 76 | 34.000 | 0.447 |
-| 2024 | 117 | 58.000 | 0.496 |
-| 2025 | 58 | 28.000 | 0.483 |
-| 2026 | 47 | 16.000 | 0.340 |
+| 2021 | 18 | 1 | 0.056 |
+| 2022 | 106 | 27 | 0.255 |
+| 2023 | 76 | 34 | 0.447 |
+| 2024 | 117 | 58 | 0.496 |
+| 2025 | 58 | 28 | 0.483 |
+| 2026 | 47 | 16 | 0.340 |
+
+| vintage | loans | failed | rate |
+| --- | --- | --- | --- |
+| 2016 | 21 | 4 | 0.190 |
+| 2017 | 138 | 42 | 0.304 |
+| 2018 | 96 | 41 | 0.427 |
+| 2019 | 100 | 53 | 0.530 |
+| 2020 | 41 | 15 | 0.366 |
+| 2021 | 26 | 9 | 0.346 |
 
 ## Tier 3: loss severity
 
 - Liquidated loan positions: 220; with a realized loss reported: 151. Median severity where reported: 0.43.
+
+| property_group | liquidated | loss_reported | median_severity |
+| --- | --- | --- | --- |
+| industrial | 10 | 7 | 0.134 |
+| lodging | 56 | 45 | 0.326 |
+| mixed_use | 20 | 13 | 0.376 |
+| multifamily | 24 | 15 | 0.425 |
+| office | 58 | 42 | 0.653 |
+| other | 1 | 0 |  |
+| retail | 48 | 29 | 0.550 |
+| self_storage | 3 | 0 |  |
+
+| vintage | liquidated | loss_reported | median_severity |
+| --- | --- | --- | --- |
+| 2016 | 12 | 6 | 0.518 |
+| 2017 | 92 | 65 | 0.425 |
+| 2018 | 64 | 37 | 0.287 |
+| 2019 | 31 | 24 | 0.445 |
+| 2020 | 10 | 10 | 0.865 |
+| 2021 | 8 | 6 | 0.302 |
+| 2022 | 1 | 1 | 0.999 |
+| 2023 | 1 | 1 | 0.230 |
+| 2024 | 1 | 1 | 0.218 |
 

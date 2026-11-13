@@ -1,6 +1,6 @@
 # Gate 2 hand check: 20 labels against the filings
 
-Checked 2026-11-12. Twenty labels drawn with fixed seeds from `panel/tier1.parquet` (5 failed and 5 paid, seed 11) and from the representative rows of `panel/loan_month.parquet` (5 positive and 5 negative 12-month distress labels, seed 5). For each, the loan's EX-102 records were read straight from `parsed/loan_period/` around the dates that decide the label. All 20 match the definitions in `docs/labels.md`.
+Checked 2026-11-12. Twenty labels drawn with fixed seeds from `panel/tier1.parquet` (5 failed and 5 paid, seed 11) and from the representative rows of `panel/loan_month.parquet` (5 positive and 5 negative 12-month distress labels, seed 5; two positives redrawn with seed 13 after D045, see the end). For each, the loan's EX-102 records were read straight from `parsed/loan_period/` around the dates that decide the label. All 20 match the definitions in `docs/labels.md`.
 
 ## Tier 1: maturity outcome
 
@@ -21,9 +21,9 @@ Checked 2026-11-12. Twenty labels drawn with fixed seeds from `panel/tier1.parqu
 
 | loan position | month T | label | what the filings show in the 12 months after T |
 | --- | --- | --- | --- |
-| 1803308:64 | 2020-07 | 1 | Modification indicator switches on in March 2021 |
+| 1803308:2 | 2024-10 | 1 | Status B then 1 in September and October 2025; special servicing transfer dated 2025-09-04, first reported September 2025 |
 | 1732963:40 | 2022-11 | 1 | Special servicing transfer dated 2023-07-14, first reported August 2023 |
-| 1710261:68 | 2017-11 | 1 | Modification indicator switches on in July 2018 |
+| 1732963:30 | 2022-08 | 1 | Special servicing transfer dated 2023-03-28, first reported April 2023 |
 | 1715846:39 | 2024-09 | 1 | Status runs B, 1, 2, 3; special servicing transfer dated 2025-03-07 |
 | 1699099:1 | 2019-05 | 1 | Special servicing transfer dated 2019-12-24 |
 | 1706303:3 | 2019-08 | 0 | Status 0 in all 13 filings; no transfer, modification or payoff code |
@@ -32,4 +32,6 @@ Checked 2026-11-12. Twenty labels drawn with fixed seeds from `panel/tier1.parqu
 | 1774801:21 | 2024-02 | 0 | Same |
 | 1942599:7 | 2024-11 | 0 | Same |
 
-Two of the five positives come from the modification indicator alone, with no modification date reported. That follows the definition, but it is the weakest evidence among the event types, so Gate 3 reports performance with modifications in and out of the label (the SOP's label-sensitivity check).
+## Revision, 2026-11-13 (D045)
+
+The first draw had two positives, 1803308:64 (2020-07) and 1710261:68 (2017-11), that rested on the modification indicator alone. Both matched the definition as written, but both are NCB co-op loans (`propertyTypeCode` CH), and NCB sets the indicator with no modification code, date or new terms, in a yearly pattern (1710261:68 switches it on every July from 2018 to 2021). Across all filers, 15,931 of 15,933 indicator rows from other servicers carry modification details; NCB's 1,408 carry none. The definition now requires a detail, which removed 15,432 tier 2 positives (44% of the first count) and moved the multifamily rate from 12.8% to 1.8%. Both loans are labeled 0 for those months under the revised definition, and the filings agree: no other event follows. They were replaced by two positives drawn with seed 13 from the revised labels (rows 1 and 3 of the tier 2 table), both read from the filings as above. All 20 labels match the revised definitions.

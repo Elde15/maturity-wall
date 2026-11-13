@@ -20,7 +20,7 @@ Defeased loans (property type `SE`, or `DefeasedStatusCode` set) carry no refina
 | 60+ days delinquent | `paymentStatusLoanCode` 2 or 3 | 3.1 |
 | Matured, not paying | `paymentStatusLoanCode` 5 | 3.1 |
 | Special servicing transfer | `mostRecentSpecialServicerTransferDate` takes a value later than any the loan carried before | 3.4 |
-| Modification | `reportPeriodModificationIndicator` true, or `lastModificationDate` takes a new value | 3.5 |
+| Modification | `reportPeriodModificationIndicator` switches on together with at least one detail of the modification (`modificationCode`, `lastModificationDate` or a post-modification term), or `lastModificationDate` takes a new value (D045) | 3.5 |
 
 Distress is any of: 60+ days delinquent, matured not paying, special servicing transfer, modification, liquidation.
 
@@ -41,6 +41,7 @@ Unit: every loan-month T where the loan is performing: payment status 0, A or B;
 - 1: a distress event occurs in the 12 months after T (filings dated after T and up to T + 12 months).
 - 0: no distress event in that window, and the loan is observed through T + 12 months or paid in full inside it.
 - Censored (no label): the loan's observation ends before T + 12 months without an event or payoff.
+- `label_window_complete`: T + 12 months falls inside the trust's data. Near the end of the data a month can only be labeled early when an event has already happened (45.8% positive against 2.7% for complete windows), so models train and test on complete windows only.
 
 Status at T is a feature, never part of the label window.
 

@@ -62,3 +62,44 @@ def test_tier1_paid_failed_and_early():
     assert t1.loc["paid", "outcome"] == "paid" and t1.loc["paid", "y_fail"] == 0.0
     assert t1.loc["failed", "outcome"] == "failed" and t1.loc["failed", "y_fail"] == 1.0
     assert t1.loc["early", "outcome"] == "excluded_early_payoff"
+
+
+def test_window_running_past_the_data_is_flagged():
+    m = _months("2023-01-01", 10)
+    status = ["0"] * 6 + ["2"] * 4
+    p = tier2(events(_loan("e", m, status, [10.0] * 10)))
+    # January 2023 is labeled positive (60 days late in July) but its 12 months are not all in the data
+    assert p.loc[0, "y_distress_12m"] == 1.0 and not p.loc[0, "label_window_complete"]
+
+
+def test_modification_indicator_needs_some_detail(tmp_path, monkeypatch):
+    """D045: the indicator alone (one servicer sets it yearly on co-op loans) is not a modification."""
+    from mwall.common import paths
+    from mwall.panel.build import load_rows
+
+    (tmp_path / "loan_period").mkdir()
+    (tmp_path / "property_period").mkdir()
+    base = {
+        "trust_cik": 1, "accession": "a1", "filing_date": pd.Timestamp("2023-01-25"),
+        "period_end": pd.Timestamp("2023-01-11"), "loan_source": "loan_record", "flag_filing_corrupt": False,
+        "flag_transient_loan": False, "flag_foreign_record": False, "balance": 10.0,
+        "paymentStatusLoanCode": "0", "liquidationPrepaymentCode": None, "realizedLossToTrustAmount": 0.0,
+        "mostRecentSpecialServicerTransferDate": pd.NaT, "mostRecentMasterServicerReturnDate": pd.NaT,
+        "reportPeriodModificationIndicator": True, "lastModificationDate": pd.NaT, "modificationCode": None,
+        "postModificationInterestPercentage": np.nan, "postModificationPaymentAmount": np.nan,
+        "postModificationMaturityDate": pd.NaT, "postModificationAmortizationPeriodAmount": np.nan,
+        "maturityDate": pd.Timestamp("2027-01-11"), "hyperAmortizingDate": pd.NaT, "prop_type_code": "CH",
+        "property_group": "multifamily", "wl_balance_est": 10.0, "originationDate": pd.Timestamp("2017-01-11"),
+    }
+    rows = pd.DataFrame([base | {"root_key": "1:1"},
+                         base | {"root_key": "1:2", "modificationCode": "1", "prop_type_code": "MF"}])
+    rows["liquidationPrepaymentCode"] = rows["liquidationPrepaymentCode"].astype("string")
+    rows["modificationCode"] = rows["modificationCode"].astype("string")
+    rows.to_parquet(tmp_path / "loan_period" / "x.parquet")
+    pd.DataFrame({"accession": ["a1"], "trust_cik": [1], "root": [1], "DefeasedStatusCode": [None],
+                  "block_role": ["property"]}).astype({"DefeasedStatusCode": "string"}).to_parquet(
+        tmp_path / "property_period" / "x.parquet")
+    monkeypatch.setattr(paths, "PARSED_DIR", tmp_path)
+    out = load_rows().set_index("root_key")
+    assert not out.loc["1:1", "mod_this_period"] and out.loc["1:1", "mod_indicator_raw"]
+    assert out.loc["1:2", "mod_this_period"]
