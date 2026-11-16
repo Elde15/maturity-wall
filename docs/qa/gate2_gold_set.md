@@ -1,6 +1,6 @@
 # Tier 1 gold set: EX-102 and 10-D loan detail combined
 
-Generated 2026-11-13 by `python -m mwall panel`. One row per whole loan (`panel/tier1_gold.parquet`). Rules: docs/labels.md; sources D040, D041, D046.
+Generated 2026-11-16 by `python -m mwall panel`. One row per whole loan (`panel/tier1_gold.parquet`). Rules: docs/labels.md; sources D040, D041, D046.
 
 - **Labeled whole loans: 1,631; failed to pay within 90 days of maturity: 357 (21.9%).**
 

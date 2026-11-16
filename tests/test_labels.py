@@ -83,7 +83,8 @@ def test_modification_indicator_needs_some_detail(tmp_path, monkeypatch):
         "trust_cik": 1, "accession": "a1", "filing_date": pd.Timestamp("2023-01-25"),
         "period_end": pd.Timestamp("2023-01-11"), "loan_source": "loan_record", "flag_filing_corrupt": False,
         "flag_transient_loan": False, "flag_foreign_record": False, "balance": 10.0,
-        "paymentStatusLoanCode": "0", "liquidationPrepaymentCode": None, "realizedLossToTrustAmount": 0.0,
+        "paymentStatusLoanCode": "0", "paidThroughDate": None, "liquidationPrepaymentCode": None,
+        "realizedLossToTrustAmount": 0.0,
         "mostRecentSpecialServicerTransferDate": pd.NaT, "mostRecentMasterServicerReturnDate": pd.NaT,
         "reportPeriodModificationIndicator": True, "lastModificationDate": pd.NaT, "modificationCode": None,
         "postModificationInterestPercentage": np.nan, "postModificationPaymentAmount": np.nan,
@@ -125,3 +126,24 @@ def test_payoff_after_the_grace_window_is_a_failure():
     p = events(late)
     t1 = tier1(p, pd.Series({1: pd.Timestamp("2025-06-11")})).set_index("root_key")
     assert t1.loc["late", "outcome"] == "failed" and t1.loc["late", "y_fail"] == 1.0
+
+
+def test_blank_status_read_from_paid_through_date():
+    import duckdb
+
+    from mwall.clean import status
+
+    rows = pd.DataFrame({
+        "paymentStatusLoanCode": [None, None, None, None, "3", None],
+        "paidThroughDate": ["2026-10-01", "2026-09-01", "2026-07-01", None, "2026-10-01", "2026-11-20"],
+        "delinquency_bucket": [None, None, None, None, "dq90plus", None]})
+    con = duckdb.connect()
+    con.register("r", rows)
+    pe = "date '2026-10-12'"
+    out = con.execute(f"select {status.status_sql(pe)} s, {status.inferred_sql(pe)} inf, {status.bucket_sql(pe)} b "
+                      "from r").df()
+    # 11 days behind is current; 41 days is late under 30 days; 103 days and no date stay blank; a reported code
+    # wins even when the date says current; paid ahead is current
+    assert out["s"].fillna("blank").tolist() == ["0", "B", "blank", "blank", "3", "0"]
+    assert out["inf"].fillna(False).tolist() == [True, True, False, False, False, True]
+    assert out["b"].fillna("blank").tolist() == ["current", "late_lt30", "blank", "blank", "dq90plus", "current"]

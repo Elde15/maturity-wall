@@ -13,6 +13,7 @@ import duckdb
 import numpy as np
 import pandas as pd
 
+from mwall.clean import status
 from mwall.common import paths
 
 DAYS_PER_MONTH = 30.4375
@@ -44,7 +45,7 @@ def load_fields(where: str = "true") -> pd.DataFrame:
         "wl_balance_est": "wl_balance", "trust_share_est": "trust_share", "wl_balance_method": "wl_balance_method",
         "loanStructureCode": "structure_code", "n_properties": "n_properties",
         "prop_address": "prop_address", "prop_city": "prop_city", "prop_state": "prop_state",
-        "prop_zip": "prop_zip", "delinquency_bucket": "delinquency_bucket",
+        "prop_zip": "prop_zip", "bucket_eff": "delinquency_bucket",
     }
     pick = ", ".join(f"arg_max({src}, coalesce(balance, 0)) {dst}" for src, dst in cols.items())
     con = duckdb.connect()
@@ -54,7 +55,8 @@ def load_fields(where: str = "true") -> pd.DataFrame:
                sum(coalesce(totalPrincipalInterestAdvancedOutstandingAmount, 0)) adv_pi,
                sum(coalesce(totalTaxesInsuranceAdvancesOutstandingAmount, 0)) adv_ti,
                sum(coalesce(otherExpensesAdvancedOutstandingAmount, 0)) adv_other
-        from read_parquet('{lp}', union_by_name=true)
+        from (select *, {status.bucket_sql('max(period_end) over (partition by accession)')} bucket_eff
+              from read_parquet('{lp}', union_by_name=true))
         where loan_source in ('loan_record','note_record','replicated_child')
           and not coalesce(flag_filing_corrupt, false) and not coalesce(flag_transient_loan, false)
           and not coalesce(flag_foreign_record, false) and ({where})

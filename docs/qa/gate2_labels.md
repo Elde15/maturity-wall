@@ -1,6 +1,6 @@
 # Gate 2 label counts
 
-Generated 2026-11-13 by `python -m mwall panel`. Definitions: `docs/labels.md`. Counts use one representative position per whole loan and month, so pari passu pieces in several trusts count once.
+Generated 2026-11-16 by `python -m mwall panel`. Definitions: `docs/labels.md`. Counts use one representative position per whole loan and month, so pari passu pieces in several trusts count once.
 
 ## Panel
 
@@ -19,34 +19,34 @@ Distress events by type (representative rows; one month can carry several):
 
 ## Tier 2: distress within 12 months of a performing month
 
-- Labeled loan-months with the whole 12-month window inside the data: 676,532; with an event in the next 12 months: 18,067 (2.7%). Tables below use these rows only.
-- Labeled months whose window runs past the end of the data: 3,128, of which 1,434 positive (45.8%). A month there gets a label early only if an event has already happened, so these are left out of model training and testing.
-- Performing months censored (the loan's observation ends inside the window with no event): 119,617.
+- Labeled loan-months with the whole 12-month window inside the data: 729,724; with an event in the next 12 months: 19,442 (2.7%). Tables below use these rows only.
+- Labeled months whose window runs past the end of the data: 3,217, of which 1,523 positive (47.3%). A month there gets a label early only if an event has already happened, so these are left out of model training and testing.
+- Performing months censored (the loan's observation ends inside the window with no event): 130,860.
 
 | property_group | rows | events | rate |
 | --- | --- | --- | --- |
-| industrial | 47190 | 699 | 0.015 |
-| lodging | 77116 | 5948 | 0.077 |
-| mixed_use | 43934 | 1387 | 0.032 |
-| multifamily | 141926 | 2495 | 0.018 |
-| office | 115362 | 3492 | 0.030 |
-| other | 6971 | 177 | 0.025 |
-| retail | 185225 | 3616 | 0.020 |
-| self_storage | 58265 | 235 | 0.004 |
-|  | 543 | 18 | 0.033 |
+| industrial | 51785 | 780 | 0.015 |
+| lodging | 82506 | 6333 | 0.077 |
+| mixed_use | 47343 | 1455 | 0.031 |
+| multifamily | 152615 | 2668 | 0.017 |
+| office | 126308 | 3908 | 0.031 |
+| other | 7641 | 214 | 0.028 |
+| retail | 197407 | 3821 | 0.019 |
+| self_storage | 63318 | 236 | 0.004 |
+|  | 801 | 27 | 0.034 |
 
 | vintage | rows | events | rate |
 | --- | --- | --- | --- |
-| 2016 | 23678 | 842 | 0.036 |
-| 2017 | 178444 | 5373 | 0.030 |
-| 2018 | 135718 | 4471 | 0.033 |
-| 2019 | 143140 | 4073 | 0.028 |
-| 2020 | 65198 | 1049 | 0.016 |
-| 2021 | 64820 | 851 | 0.013 |
-| 2022 | 31467 | 478 | 0.015 |
-| 2023 | 13024 | 548 | 0.042 |
-| 2024 | 15978 | 289 | 0.018 |
-| 2025 | 5065 | 93 | 0.018 |
+| 2016 | 23736 | 845 | 0.036 |
+| 2017 | 182579 | 5556 | 0.030 |
+| 2018 | 149159 | 4990 | 0.033 |
+| 2019 | 153851 | 4418 | 0.029 |
+| 2020 | 65225 | 1050 | 0.016 |
+| 2021 | 78375 | 947 | 0.012 |
+| 2022 | 38904 | 585 | 0.015 |
+| 2023 | 15289 | 634 | 0.041 |
+| 2024 | 17283 | 324 | 0.019 |
+| 2025 | 5323 | 93 | 0.017 |
 
 ## Tier 1: maturity outcome (gold set)
 

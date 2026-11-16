@@ -95,6 +95,12 @@ def cmd_features(args) -> None:
         leakage.audit(log=_log)
 
 
+def cmd_model(args) -> None:
+    from mwall.model import run
+
+    run.run(tuple(args.stage) if args.stage else run.STAGES, log=_log)
+
+
 def cmd_census(args) -> None:
     from mwall.parse import census
 
@@ -185,6 +191,10 @@ def main(argv: list[str] | None = None) -> None:
     s.add_argument("--audit-only", action="store_true")
     s.add_argument("--report-only", action="store_true", help="rewrite the dictionary and QA report only")
     s.set_defaults(func=cmd_features)
+
+    s = sub.add_parser("model", help="Gate 3 models: rolling-origin evaluation and robustness (SOP 10-11)")
+    s.add_argument("--stage", action="append", help="rolling, ablations, family (default: all, in order)")
+    s.set_defaults(func=cmd_model)
 
     s = sub.add_parser("loandetail", help="vintage-2016 10-D loan detail tables (D033 pilot): fetch and/or parse")
     s.add_argument("--fetch", action="store_true")

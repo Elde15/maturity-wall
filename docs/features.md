@@ -81,7 +81,7 @@ Generated from `src/mwall/features/catalog.py`; do not edit by hand. SOP section
 
 | feature | definition | unit | inputs | lag | nulls | coverage |
 | --- | --- | --- | --- | --- | --- | --- |
-| `delinquency_bucket` | Decoded payment status at T. Used only for labels that look strictly forward from T | category | `paymentStatusLoanCode` | same filing (public on T) | null when an input is missing | 89% |
+| `delinquency_bucket` | Decoded payment status at T. Used only for labels that look strictly forward from T | category | `paymentStatusLoanCode` | same filing (public on T) | null when an input is missing | 96% |
 | `f_ever_modified` | A modification event at or before T (indicator switch-on or a new modification date) | flag | `reportPeriodModificationIndicator`, `lastModificationDate` | same filing and earlier filings of the loan (all public on or before T) | null when an input is missing | 100% |
 | `f_ever_special_serviced` | A special-servicing transfer date reported at or before T | flag | `mostRecentSpecialServicerTransferDate` | same filing and earlier filings of the loan (all public on or before T) | null when an input is missing | 100% |
 | `f_in_special_servicing` | Transferred and not yet returned at T | flag | `mostRecentSpecialServicerTransferDate`, `mostRecentMasterServicerReturnDate` | same filing (public on T) | null when an input is missing | 100% |

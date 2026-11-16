@@ -1,6 +1,6 @@
 # Gate 2 features: coverage and distributions
 
-Generated 2026-11-13 by `python -m mwall features`. Dictionary: `docs/features.md`. Rows: 1,102,379 loan-months; tables and plots use the 970,517 representative rows (one per whole loan and month).
+Generated 2026-11-16 by `python -m mwall features`. Dictionary: `docs/features.md`. Rows: 1,102,379 loan-months; tables and plots use the 970,517 representative rows (one per whole loan and month).
 
 - Late snapshots (filed more than 60 days after the period, or after the loan's next period ended): 7,229 rows, kept out of model training.
 - Rows with a metro: 92.7%.
@@ -59,7 +59,7 @@ Generated 2026-11-13 by `python -m mwall features`. Dictionary: `docs/features.m
 | f_years_since_renovation | 0.97 | 0.99 | 1.00 | 0.99 | 0.99 | 0.99 | 0.99 | 0.99 | 0.75 |
 | f_balance_per_unit | 0.30 | 0.96 | 0.00 | 0.00 | 0.00 | 0.94 | 0.00 | 0.00 | 0.00 |
 | f_balance_per_sqft | 0.56 | 0.00 | 0.90 | 0.95 | 0.89 | 0.00 | 0.80 | 0.84 | 0.12 |
-| delinquency_bucket | 0.89 | 0.93 | 0.91 | 0.93 | 0.90 | 0.93 | 0.91 | 0.93 | 0.55 |
+| delinquency_bucket | 0.96 | 0.99 | 0.99 | 1.00 | 0.99 | 0.99 | 0.99 | 1.00 | 0.59 |
 | f_ever_modified | 1.00 | 1.00 | 1.00 | 1.00 | 1.00 | 1.00 | 1.00 | 1.00 | 1.00 |
 | f_ever_special_serviced | 1.00 | 1.00 | 1.00 | 1.00 | 1.00 | 1.00 | 1.00 | 1.00 | 1.00 |
 | f_in_special_servicing | 1.00 | 1.00 | 1.00 | 1.00 | 1.00 | 1.00 | 1.00 | 1.00 | 1.00 |

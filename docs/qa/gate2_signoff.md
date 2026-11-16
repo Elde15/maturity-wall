@@ -13,7 +13,7 @@ Signed off 2026-11-13. Every checklist item below is decided by a committed arti
 
 ## What the labels say
 
-- **Tier 2 (12-month distress):** 676,532 labeled loan-months with the whole window inside the data, 18,067 with an event (2.7%). Lodging runs highest at 7.7%, self-storage lowest at 0.4%. Office is 3.0% and multifamily 1.8%.
+- **Tier 2 (12-month distress):** 729,724 labeled loan-months with the whole window inside the data, 19,442 with an event (2.7%). Lodging runs highest at 7.7%, self-storage lowest at 0.4%. Office is 3.1% and multifamily 1.7%. (Revised 2026-11-16 under D055, which reads a blank payment status from the paid-through date; at sign-off the count was 676,532 with 18,067 events. The leakage audit was rerun and passes.)
 - **Tier 1 (maturity outcome):** 173 of 431 EX-102 whole loans failed to pay within 90 days of maturity (40.1%). Adding the vintage-2016 loans read from 10-D tables gives a gold set of 1,631 labeled whole loans and 357 failures (21.9%), most of them maturing in 2025 and 2026. The two sources overlap on 7 loans and agree on all 8 labeled pairs.
 - **Tier 3 (loss severity):** 220 liquidated positions, 151 with a reported loss, median severity 0.43.
 

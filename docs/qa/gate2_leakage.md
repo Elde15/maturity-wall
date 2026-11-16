@@ -1,6 +1,6 @@
 # Gate 2 leakage audit
 
-Generated 2026-11-13 by `python -m mwall features --audit`. Rules: SOP section 9. The snapshot date T of a row is its EDGAR filing date.
+Generated 2026-11-16 by `python -m mwall features --audit`. Rules: SOP section 9. The snapshot date T of a row is its EDGAR filing date.
 
 **Verdict: PASS.**
 

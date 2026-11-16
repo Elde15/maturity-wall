@@ -36,12 +36,12 @@ The 90-day grace window is the SOP default; the robustness suite reruns at 60 an
 
 ## Tier 2: forward distress (main training set)
 
-Unit: every loan-month T where the loan is performing: payment status 0, A or B; not in special servicing (no transfer date after the last return date); not matured; not defeased.
+Unit: every loan-month T where the loan is performing: payment status 0, A or B (a blank status is read from the paid-through date, D055); not in special servicing (no transfer date after the last return date); not matured; not defeased.
 
 - 1: a distress event occurs in the 12 months after T (filings dated after T and up to T + 12 months).
 - 0: no distress event in that window, and the loan is observed through T + 12 months or paid in full inside it.
 - Censored (no label): the loan's observation ends before T + 12 months without an event or payoff.
-- `label_window_complete`: T + 12 months falls inside the trust's data. Near the end of the data a month can only be labeled early when an event has already happened (45.8% positive against 2.7% for complete windows), so models train and test on complete windows only.
+- `label_window_complete`: T + 12 months falls inside the trust's data. Near the end of the data a month can only be labeled early when an event has already happened (47.3% positive against 2.7% for complete windows), so models train and test on complete windows only.
 
 Status at T is a feature, never part of the label window.
 

@@ -16,6 +16,7 @@ import duckdb
 import numpy as np
 import pandas as pd
 
+from mwall.clean import status
 from mwall.common import paths
 
 GRACE_DAYS = 90          # tier 1 grace after maturity (SOP default; robustness reruns at 60 and 120)
@@ -38,20 +39,24 @@ def load_rows() -> pd.DataFrame:
     lp = (paths.PARSED_DIR / "loan_period" / "*.parquet").as_posix()
     pp = (paths.PARSED_DIR / "property_period" / "*.parquet").as_posix()
     rows = con.execute(f"""
-        with l as (
-            select *, max(period_end) over (partition by accession) acc_pe,
-                   case cast(paymentStatusLoanCode as varchar)
-                        when '0' then 0 when 'A' then 1 when 'B' then 2 when '1' then 3 when '4' then 4
-                        when '2' then 5 when '3' then 6 when '5' then 7 end sev
+        with l0 as (
+            select *, max(period_end) over (partition by accession) acc_pe
             from read_parquet('{lp}', union_by_name=true)
             where loan_source in ('loan_record','note_record','replicated_child')
               and not coalesce(flag_filing_corrupt, false) and not coalesce(flag_transient_loan, false)
-              and not coalesce(flag_foreign_record, false))
+              and not coalesce(flag_foreign_record, false)),
+        l as (
+            -- a blank status is read from the paid-through date (D055)
+            select *, {status.status_sql('acc_pe')} status_eff, {status.inferred_sql('acc_pe')} status_inferred,
+                   case {status.status_sql('acc_pe')}
+                        when '0' then 0 when 'A' then 1 when 'B' then 2 when '1' then 3 when '4' then 4
+                        when '2' then 5 when '3' then 6 when '5' then 7 end sev
+            from l0)
         select trust_cik, root_key, accession, any_value(acc_pe) period_end, any_value(filing_date) filing_date,
                count(*) n_records,
                sum(balance) balance,
                count(*) filter (where balance is null and liquidationPrepaymentCode is null) n_blank_balance,
-               arg_max(paymentStatusLoanCode, sev) payment_status,
+               arg_max(status_eff, sev) payment_status, bool_or(status_inferred) status_inferred,
                list_distinct(list(cast(liquidationPrepaymentCode as varchar))) liq_codes,
                sum(realizedLossToTrustAmount) realized_loss,
                max(mostRecentSpecialServicerTransferDate) ss_transfer_date,
@@ -135,14 +140,15 @@ def tier2(p: pd.DataFrame) -> pd.DataFrame:
     return p
 
 
-def tier1(p: pd.DataFrame, trust_last: pd.Series) -> pd.DataFrame:
+def tier1(p: pd.DataFrame, trust_last: pd.Series, grace: int = GRACE_DAYS) -> pd.DataFrame:
+    """grace: days after maturity a payoff still counts as paid (robustness reruns use 60 and 120)."""
     out = []
     for rk, d in p.groupby("root_key", sort=False):
         mat = d["maturity_eff"].iloc[0]
         if pd.isna(mat):
             continue
         tl = trust_last.get(d["trust_cik"].iloc[0])
-        if pd.isna(tl) or mat > tl - pd.Timedelta(days=GRACE_DAYS) or mat < d["period_end"].iloc[0]:
+        if pd.isna(tl) or mat > tl - pd.Timedelta(days=grace) or mat < d["period_end"].iloc[0]:
             continue  # maturity plus grace not inside the data window, or before the loan was first seen
         rec = {"root_key": rk, "trust_cik": d["trust_cik"].iloc[0], "maturity_eff": mat,
                "maturity_is_ard": pd.notna(d["ard0"].iloc[0]), "property_group": d["property_group"].iloc[0],
@@ -152,7 +158,7 @@ def tier1(p: pd.DataFrame, trust_last: pd.Series) -> pd.DataFrame:
         liq = d.loc[d["ev_liquidation"], "period_end"]
         pay_first = pay.min() if len(pay) else pd.NaT
         liq_first = liq.min() if len(liq) else pd.NaT
-        late = d[(d["period_end"] > mat + pd.Timedelta(days=GRACE_DAYS)) & (d["balance"].fillna(0) > 0)]
+        late = d[(d["period_end"] > mat + pd.Timedelta(days=grace)) & (d["balance"].fillna(0) > 0)]
         if d["defeased"].any():
             rec["outcome"] = "excluded_defeased"
         elif d["ev_removed"].any():
@@ -161,7 +167,7 @@ def tier1(p: pd.DataFrame, trust_last: pd.Series) -> pd.DataFrame:
             rec["outcome"] = "excluded_early_payoff"
         elif pd.notna(liq_first) and liq_first < window_start:
             rec["outcome"] = "excluded_early_liquidation"
-        elif pd.notna(pay_first) and pay_first <= mat + pd.Timedelta(days=GRACE_DAYS) and (
+        elif pd.notna(pay_first) and pay_first <= mat + pd.Timedelta(days=grace) and (
                 pd.isna(liq_first) or liq_first > pay_first):
             rec["outcome"] = "paid"
         elif len(late) or pd.notna(liq_first) or pd.notna(pay_first):
