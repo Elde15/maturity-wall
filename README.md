@@ -78,3 +78,7 @@ The full list is on the site's method page and in each gate's sign-off.
 ## Data and rights
 
 The SEC filings are public. `fixtures/raw/` and `tests/golden/` hold eleven small EX-102 filings (228 KB compressed) so a clone can rebuild the fixture and run the golden tests; the bulk filings stay out of the repo. Figures from firms' public reports (cap rates, lending spreads, rating-agency haircuts, REIT disclosures, broker surveys) are cited row by row in `config/research/`, each with its publisher, date, URL and a short verifying quote; the source documents themselves are not redistributed (D056). The SEC contact used for EDGAR requests lives in an environment variable and has never been committed.
+
+## License
+
+The code and the documentation written for this project are released under the MIT License (`LICENSE`). The SEC filings are public records. Figures and short quotes from other publishers in `config/research/` remain theirs; they are cited here, not licensed.

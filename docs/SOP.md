@@ -8,8 +8,6 @@ This project builds a public, data-driven model that finds US commercial mortgag
 
 **Thesis.** Roughly a trillion dollars of commercial debt is repricing from low-rate loans to today's rates. Loans that cannot be refinanced become forced sellers, recapitalizations or note sales. A model that ranks those loans, sizes the refinance gap and underwrites the resulting opportunity is the daily work of debt-advisory, capital-markets and acquisitions teams.
 
-**Audience.** Recruiters and analysts at JLL, CBRE, Eastdil Secured and similar firms; acquisitions and credit teams at funds. They will skim the site for two minutes and may read the repo for twenty.
-
 **What the finished project contains**
 
 - A public GitHub repository with a reproducible pipeline, tests, a data dictionary and a model card.
