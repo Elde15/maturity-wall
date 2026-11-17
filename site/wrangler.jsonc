@@ -1,0 +1,13 @@
+{
+  // Cloudflare Workers static assets (Pages is now part of Workers). Every public address stays OFF until
+  // Cloudflare Access protects it (private preview) or the author approves publication (Gate 6).
+  "name": "maturity-wall",
+  "compatibility_date": "2026-11-16",
+  "assets": {
+    "directory": "./dist",
+    "not_found_handling": "404-page",
+    "html_handling": "auto-trailing-slash"
+  },
+  "workers_dev": false,
+  "preview_urls": false
+}
