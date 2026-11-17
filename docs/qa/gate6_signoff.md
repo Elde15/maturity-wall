@@ -23,7 +23,11 @@ met. Decisions D064 to D066 record what this gate changed.
 
 ## After publication
 
-To be filled in once the repository is public: the recheck of the seven repository links.
+The repository was made public on 2026-11-16 at f9e0706. Fetched without signing in, the repository page and every
+repository file the site links to (selection rule, candidate list, memo, decision log, model card, model test report,
+SEC schema elements, project plan) return 200. That clears the seven new failures and the repository link on the data
+page, one of the fourteen from Gate 5. Thirteen remain: twelve government and publisher pages that refuse automated
+requests (each opens in a browser) and the author's unregistered domain.
 
 ## What's left for the definition of done
 
