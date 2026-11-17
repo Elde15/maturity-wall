@@ -149,19 +149,21 @@ export function hbars(container, rows, opts = {}) {
     const svg = select(container).insert("svg", ":first-child").attr("width", width).attr("height", H)
       .attr("role", "img").attr("aria-label", opts.aria || "Bar chart");
     const x = scaleLinear().domain([0, opts.max ?? max(rows, (r) => r.value)]).nice().range([m.l, width - m.r]);
-    const y = scaleBand().domain(rows.map((r) => r.label)).range([m.t, H - m.b]).paddingInner(0.32);
+    const key = (r, i) => r.key ?? `${i}|${r.label}`;   // a band per row, even when two rows share a label
+    rows.forEach((r, i) => { r._k = key(r, i); });
+    const y = scaleBand().domain(rows.map((r) => r._k)).range([m.t, H - m.b]).paddingInner(0.32);
     svg.append("g").attr("class", "gridline").attr("transform", `translate(0,${H - m.b})`)
       .call(axisBottom(x).ticks(4).tickSize(-(H - m.t - m.b)).tickFormat(""));
     svg.append("g").attr("class", "axis").attr("transform", `translate(0,${H - m.b})`)
       .call(axisBottom(x).ticks(4).tickFormat(opts.fmt).tickSizeOuter(0));
     svg.append("g").selectAll("text").data(rows).join("text").attr("class", "dlabel")
-      .attr("x", m.l - 8).attr("y", (r) => y(r.label) + y.bandwidth() / 2).attr("dy", "0.35em")
+      .attr("x", m.l - 8).attr("y", (r) => y(r._k) + y.bandwidth() / 2).attr("dy", "0.35em")
       .attr("text-anchor", "end").text((r) => r.label);
     const bars = svg.append("g").selectAll("rect").data(rows).join("rect")
-      .attr("x", m.l).attr("y", (r) => y(r.label)).attr("height", y.bandwidth())
+      .attr("x", m.l).attr("y", (r) => y(r._k)).attr("height", y.bandwidth())
       .attr("width", (r) => Math.max(0, x(r.value) - m.l)).attr("fill", (r) => r.color || "var(--water)");
     svg.append("g").selectAll("text").data(rows).join("text").attr("class", "dlabel")
-      .attr("x", (r) => x(r.value) + 6).attr("y", (r) => y(r.label) + y.bandwidth() / 2).attr("dy", "0.35em")
+      .attr("x", (r) => x(r.value) + 6).attr("y", (r) => y(r._k) + y.bandwidth() / 2).attr("dy", "0.35em")
       .text((r) => opts.fmt(r.value));
     bindTip(bars, tip, (r) => opts.tip ? opts.tip(r) : `<b>${r.label}</b><br>${opts.fmt(r.value)}`, container);
   });

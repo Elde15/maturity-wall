@@ -32,7 +32,7 @@ $("sum").innerHTML = la.summary.map((s) => `<li>${escapeHTML(s)}</li>`).join("")
 
   const rows = mk.by_type.filter((t) => t.gap_share_la !== null).flatMap((t) => [
     { label: `${typeLabel(t.type)}, LA`, value: t.gap_share_la, color: "var(--water)", t },
-    { label: "US", value: t.gap_share_us, color: "var(--wall-light)", t }]);
+    { label: "national", value: t.gap_share_us, color: "var(--wall-light)", t }]);
   const f2 = figure(host, {
     q: "Is the gap worse here than nationally?",
     take: "Share of each type's balance sitting in loans a lender wouldn't refinance in full today, Los Angeles against the national figure.",
