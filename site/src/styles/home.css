@@ -1,0 +1,27 @@
+.hero { padding: var(--sp-8) 0 0; display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); column-gap: var(--sp-5); }
+.hero > * { grid-column: 1 / -1; }
+.hero-label { margin: 0 0 var(--sp-4); }
+.hero h1 { grid-column: 1 / span 10; font-size: clamp(2.5rem, 5vw + 1rem, 4.75rem); line-height: 1.02; letter-spacing: -0.035em; }
+.hero-num { color: var(--water-ink); white-space: nowrap; }
+.hero .lede { grid-column: 1 / span 8; margin-top: var(--sp-5); }
+.hero-cta { display: flex; flex-wrap: wrap; align-items: center; gap: var(--sp-5); margin: var(--sp-5) 0 0; }
+#hero-fig { margin-top: var(--sp-7); position: relative; }
+#hero-fig .fig { border-top: 1px solid var(--ink); padding-top: var(--sp-4); }
+@media (max-width: 760px) { .hero h1, .hero .lede { grid-column: 1 / -1; } }
+
+.findings { list-style: none; margin: var(--sp-6) 0 0; padding: 0; counter-reset: f; }
+.findings li { display: grid; grid-template-columns: minmax(0, 4fr) minmax(0, 6fr); column-gap: var(--sp-6); padding: var(--sp-5) 0; border-top: 1px solid var(--rule); }
+.findings li:first-child { border-top-color: var(--ink); }
+.findings .v { font-family: var(--f-display); font-weight: 750; font-size: clamp(2.25rem, 3vw + 1rem, 3.5rem); line-height: 1; color: var(--ink); letter-spacing: -0.035em; font-variant-numeric: tabular-nums; }
+.findings .v small { display: block; font-family: var(--f-body); font-size: var(--s-14); font-weight: 600; letter-spacing: 0; color: var(--muted); margin-top: var(--sp-2); }
+.findings h3 { margin-bottom: var(--sp-2); }
+.findings p { margin: 0; }
+.findings .more { display: inline-block; margin-top: var(--sp-2); font-size: var(--s-14); font-weight: 600; }
+@media (max-width: 760px) { .findings li { grid-template-columns: minmax(0, 1fr); row-gap: var(--sp-3); } }
+
+.toc { margin: var(--sp-5) 0 0; display: grid; grid-template-columns: minmax(0, 3fr) minmax(0, 7fr); }
+.toc dt, .toc dd { margin: 0; padding: var(--sp-3) 0; border-top: 1px solid var(--rule); }
+.toc dt a { font-family: var(--f-display); font-weight: 700; font-size: var(--s-20); text-decoration: none; color: var(--ink); }
+.toc dt a:hover { color: var(--water-ink); text-decoration: underline; }
+.toc dd { color: var(--ink-2); }
+@media (max-width: 760px) { .toc { grid-template-columns: minmax(0, 1fr); } .toc dd { border-top: 0; padding-top: 0; } }

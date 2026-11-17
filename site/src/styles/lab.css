@@ -1,0 +1,25 @@
+.lab { display: grid; grid-template-columns: minmax(0, 4fr) minmax(0, 8fr); gap: var(--sp-7); margin-top: var(--sp-7); align-items: start; }
+@media (max-width: 900px) { .lab { grid-template-columns: minmax(0, 1fr); } }
+.panel { position: sticky; top: var(--sp-4); border-top: 1px solid var(--ink); padding-top: var(--sp-4); display: flex; flex-direction: column; gap: var(--sp-5); }
+@media (max-width: 900px) { .panel { position: static; } }
+.slider label { display: flex; justify-content: space-between; align-items: baseline; gap: var(--sp-3); }
+.slider output { font-family: var(--f-display); font-weight: 700; font-size: var(--s-20); color: var(--ink); font-variant-numeric: tabular-nums; }
+.slider input { margin: var(--sp-2) 0 0; min-height: 32px; }
+.slider .hint { display: block; font-size: var(--s-12); color: var(--muted); line-height: 1.4; }
+.modes { display: flex; border-bottom: 1px solid var(--ink); }
+.modes button { font: 600 var(--s-14) / 1 var(--f-body); min-height: 44px; padding: 0 var(--sp-5); border: 0; background: none; color: var(--ink-2); cursor: pointer; border-bottom: 3px solid transparent; margin-bottom: -1px; }
+.modes button[aria-selected="true"] { color: var(--ink); border-bottom-color: var(--water); }
+.seg-pick { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--sp-4); margin-top: var(--sp-5); }
+.status-line { margin: var(--sp-4) 0 0; color: var(--muted); min-height: 1.5em; }
+.stats .d { display: block; font-size: var(--s-12); font-weight: 600; margin-top: var(--sp-1); color: var(--muted); }
+.stats .d.up { color: var(--critical); }
+.stats .d.down { color: var(--water-ink); }
+.picker { margin-top: var(--sp-5); }
+.picker input { width: 100%; }
+.pick-list { list-style: none; margin: 0; padding: 0; border: 1px solid var(--rule); border-top: 0; max-height: 280px; overflow-y: auto; }
+.pick-list:empty { display: none; }
+.pick-list li { padding: var(--sp-2) var(--sp-3); cursor: pointer; border-top: 1px solid var(--grid); font-size: var(--s-14); min-height: 44px; display: flex; flex-direction: column; justify-content: center; }
+.pick-list li:hover, .pick-list li[aria-selected="true"] { background: var(--water-wash); }
+.pick-list li small { color: var(--muted); }
+.cmp td.now { font-weight: 700; color: var(--ink); }
+.assume { margin-top: var(--sp-6); max-width: 80ch; }

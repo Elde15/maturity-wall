@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Loan tear sheet: Maturity Wall</title>
+  <meta name="description" content="One CMBS loan in full: filing facts, NOI and DSCR history, refinance test, model drivers, underwriting and the SEC filings behind every number.">
+  <meta property="og:title" content="CMBS loan tear sheet">
+  <meta property="og:image" content="/og.png">
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="/src/styles/base.css">
+  <link rel="stylesheet" href="/src/styles/loan.css">
+</head>
+<body>
+  <!-- @header -->
+  <!-- @banner -->
+  <main id="main">
+    <div class="shell" id="sheet">
+      <header class="page-head">
+        <span class="label"><a href="/loans.html">Loans</a> / Tear sheet</span>
+        <h1 id="t-name">Loading the loan</h1>
+        <p class="lede" id="t-where"></p>
+        <p class="chips" id="t-chips"></p>
+        <ul class="stats" id="t-stats"></ul>
+      </header>
+      <section class="section" aria-labelledby="s1"><div class="rail"><span class="idx">01</span><span class="label">Loan facts</span></div>
+        <div class="body"><h2 id="s1">From the latest filing</h2><dl class="facts" id="facts"></dl></div></section>
+      <section class="section" aria-labelledby="s2"><div class="rail"><span class="idx">02</span><span class="label">Performance</span></div>
+        <div class="body"><h2 id="s2">NOI, coverage and occupancy since securitization</h2><div class="perf" id="perf"></div></div></section>
+      <section class="section" aria-labelledby="s3"><div class="rail"><span class="idx">03</span><span class="label">Model view</span></div>
+        <div class="body"><h2 id="s3">What the models say, and why</h2><div id="model"></div></div></section>
+      <section class="section" aria-labelledby="s4"><div class="rail"><span class="idx">04</span><span class="label">Underwriting</span></div>
+        <div class="body"><h2 id="s4">Refinance test, value and bids</h2>
+          <div class="scen-pick" role="radiogroup" aria-label="Scenario" id="scen-pick"></div>
+          <p class="scen-note small" id="scen-note"></p>
+          <div id="uw"></div></div></section>
+      <section class="section" aria-labelledby="s5"><div class="rail"><span class="idx">05</span><span class="label">Sources</span></div>
+        <div class="body"><h2 id="s5">The filings behind every number</h2><div id="sources"></div></div></section>
+    </div>
+  </main>
+  <!-- @footer -->
+  <script type="module" src="/src/pages/loan.js"></script>
+</body>
+</html>

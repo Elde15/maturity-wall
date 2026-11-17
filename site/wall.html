@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>The wall: CMBS debt coming due and the refinance gap</title>
+  <meta name="description" content="CMBS balance coming due by year and property type, the share of each type a lender would not refinance today, and how the refinance gap moves with rates and cap rates.">
+  <meta property="og:title" content="The CMBS maturity wall by year and property type">
+  <meta property="og:image" content="/og.png">
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="/src/styles/base.css">
+</head>
+<body>
+  <!-- @header -->
+  <!-- @banner -->
+  <main id="main">
+    <div class="shell">
+      <header class="page-head">
+        <span class="label">The wall</span>
+        <h1>Which debt comes due when, and how much of it can't refinance</h1>
+        <p class="lede" id="lede">Every scored loan's whole-loan balance, by the year it matures and by property type, with the refinance gap measured at today's terms.</p>
+      </header>
+      <section class="section" aria-labelledby="a-h">
+        <div class="rail"><span class="idx">01</span><span class="label">By type</span></div>
+        <div class="body"><h2 id="a-h" class="sr-only">Balance by maturity year and property type</h2><div id="by-type"></div></div>
+      </section>
+      <section class="section" aria-labelledby="b-h">
+        <div class="rail"><span class="idx">02</span><span class="label">Where it's worst</span></div>
+        <div class="body"><h2 id="b-h" class="sr-only">Share of balance with a refinance gap</h2><div id="share"></div></div>
+      </section>
+      <section class="section" aria-labelledby="c-h">
+        <div class="rail"><span class="idx">03</span><span class="label">Rates</span></div>
+        <div class="body"><h2 id="c-h" class="sr-only">Refinance gap by scenario</h2><div id="rates"></div><div id="scen"></div></div>
+      </section>
+      <section class="section" aria-labelledby="d-h">
+        <div class="rail"><span class="idx">04</span><span class="label">Discounts</span></div>
+        <div class="body"><h2 id="d-h" class="sr-only">Implied discount to par for high-risk loans</h2><div id="disc"></div></div>
+      </section>
+    </div>
+  </main>
+  <!-- @footer -->
+  <script type="module" src="/src/pages/wall.js"></script>
+</body>
+</html>

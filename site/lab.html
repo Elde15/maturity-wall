@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Scenario lab: move rates and cap rates, recompute every bid</title>
+  <meta name="description" content="Move Treasury yields, lending spreads, cap rates, NOI and the return hurdle, and recompute refinance gaps, values, bids and returns for one CMBS loan or a whole segment in your browser.">
+  <meta property="og:title" content="CMBS scenario lab">
+  <meta property="og:image" content="/og.png">
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="/src/styles/base.css">
+  <link rel="stylesheet" href="/src/styles/lab.css">
+</head>
+<body>
+  <!-- @header -->
+  <!-- @banner -->
+  <main id="main">
+    <div class="shell">
+      <header class="page-head">
+        <span class="label">Scenario lab</span>
+        <h1>Move the market, and every bid moves with it</h1>
+        <p class="lede">The sliders change the underwriting inputs and your browser reruns the engine: loan sizing, value, bids and returns. The failure and distress probabilities were computed once by the models and stay fixed here.</p>
+      </header>
+      <div class="lab">
+        <form class="panel" id="panel" aria-label="Scenario inputs">
+          <label class="control"><span class="label">Starting scenario</span><select name="scenario" id="scenario"></select></label>
+          <div class="slider"><label for="tsy"><span class="label">Treasury yields</span><output id="o-tsy"></output></label>
+            <input type="range" id="tsy" name="tsy" min="-200" max="300" step="25" value="0"><span class="hint" id="h-tsy"></span></div>
+          <div class="slider"><label for="spr"><span class="label">Lending spread</span><output id="o-spr"></output></label>
+            <input type="range" id="spr" name="spr" min="-100" max="200" step="10" value="0"><span class="hint" id="h-spr"></span></div>
+          <div class="slider"><label for="cap"><span class="label">Cap rates</span><output id="o-cap"></output></label>
+            <input type="range" id="cap" name="cap" min="-150" max="200" step="25" value="0"><span class="hint">Shifts going-in and exit cap rates together.</span></div>
+          <div class="slider"><label for="hc"><span class="label">NOI haircut</span><output id="o-hc"></output></label>
+            <input type="range" id="hc" name="hc" min="0" max="40" step="1" value="0"><span class="hint" id="h-hc"></span></div>
+          <div class="slider"><label for="hur"><span class="label">Levered return hurdle</span><output id="o-hur"></output></label>
+            <input type="range" id="hur" name="hur" min="8" max="25" step="1" value="20"><span class="hint">The return bid is the price that earns exactly this.</span></div>
+          <button type="button" class="toggle" id="reset">Reset to the starting scenario</button>
+        </form>
+        <div class="out">
+          <div class="modes" role="tablist" aria-label="What to recompute">
+            <button type="button" role="tab" id="tab-seg" aria-selected="true" aria-controls="seg">A segment</button>
+            <button type="button" role="tab" id="tab-one" aria-selected="false" aria-controls="one">One loan</button>
+          </div>
+          <section id="seg" role="tabpanel" aria-labelledby="tab-seg">
+            <div class="seg-pick">
+              <label class="control"><span class="label">Property type</span><select id="seg-type"><option value="">All types</option></select></label>
+              <label class="control"><span class="label">State</span><select id="seg-state"><option value="">All states</option></select></label>
+            </div>
+            <p class="status-line small" id="seg-status" aria-live="polite"></p>
+            <ul class="stats" id="seg-stats"></ul>
+            <div id="seg-table"></div>
+          </section>
+          <section id="one" role="tabpanel" aria-labelledby="tab-one" hidden>
+            <label class="control picker"><span class="label">Find a loan</span>
+              <input type="search" id="one-q" placeholder="Property, city or state" autocomplete="off" aria-controls="one-list"></label>
+            <ul class="pick-list" id="one-list" role="listbox" aria-label="Matching loans"></ul>
+            <div id="one-out"></div>
+          </section>
+          <p class="small muted assume" id="assume"></p>
+        </div>
+      </div>
+    </div>
+  </main>
+  <!-- @footer -->
+  <script type="module" src="/src/pages/lab.js"></script>
+</body>
+</html>

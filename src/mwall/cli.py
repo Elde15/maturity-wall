@@ -117,6 +117,12 @@ def cmd_underwrite(args) -> None:
     run.main(log=_log)
 
 
+def cmd_site(args) -> None:
+    from mwall.site_export import export
+
+    export.main(log=_log)
+
+
 def cmd_census(args) -> None:
     from mwall.parse import census
 
@@ -218,6 +224,9 @@ def main(argv: list[str] | None = None) -> None:
     s.add_argument("--handcheck", action="store_true", help="rebuild the hand-check workbook and recalculate it "
                    "in Excel (Windows with Excel only)")
     s.set_defaults(func=cmd_underwrite)
+
+    s = sub.add_parser("site", help="Gate 5: write the site's data files to site/public/data (SOP 14)")
+    s.set_defaults(func=cmd_site)
 
     s = sub.add_parser("loandetail", help="vintage-2016 10-D loan detail tables (D033 pilot): fetch and/or parse")
     s.add_argument("--fetch", action="store_true")

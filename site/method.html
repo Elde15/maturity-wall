@@ -1,0 +1,107 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Method: data, models, underwriting and every source</title>
+  <meta name="description" content="How the Maturity Wall numbers are made: SEC loan-level data, out-of-time model tests against simple rules, calibration, the underwriting engine, every parameter with its source, and the limitations.">
+  <meta property="og:title" content="Maturity Wall method">
+  <meta property="og:image" content="/og.png">
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="/src/styles/base.css">
+  <link rel="stylesheet" href="/src/styles/method.css">
+</head>
+<body>
+  <!-- @header -->
+  <main id="main">
+    <div class="shell">
+      <header class="page-head">
+        <span class="label">Method</span>
+        <h1>How the numbers are made, and where they fail</h1>
+        <p class="lede">Everything here is rebuilt from public filings and published market data. The models were tested on years and loans they never saw, against the rules of thumb a lender would use. Where they fell short, it says so.</p>
+        <nav class="toc-inline" aria-label="On this page"><a href="#data">Data</a><a href="#definitions">Definitions</a><a href="#models">Models</a><a href="#underwriting">Underwriting</a><a href="#parameters">Parameters</a><a href="#limits">Limitations</a><a href="#sources">Sources</a></nav>
+      </header>
+
+      <section class="section" id="data" aria-labelledby="h-data"><div class="rail"><span class="idx">01</span><span class="label">Data</span></div>
+        <div class="body prose"><h2 id="h-data">Loan-level filings of registered CMBS trusts</h2>
+          <p>Since 2017, every SEC-registered CMBS trust files a monthly Form ABS-EE whose exhibit EX-102 lists each loan and property: balance, coupon, maturity, payment status, NOI, DSCR, occupancy, appraisal, the three largest tenants and servicer actions. The project found 381 such trusts by reading the namespace of every ABS-EE filer's exhibit rather than searching names, parsed 23,970 filings with its own parser, and rebuilt each loan across its monthly reports.</p>
+          <p>A loan is not a row. Filers use at least six layouts, and in one of them every property of a 39-property loan repeats the full loan balance. Large loans are split into pari passu pieces held by different trusts; property NOI covers the whole loan while each trust reports only its piece, so every ratio here uses an estimated whole-loan balance, and pieces of one loan are counted once. Property addresses get a county and metro from the Census geocoder and published crosswalks, never from a ZIP prefix.</p>
+          <p>The scored set is each loan's latest monthly report: <span data-h="loans_scored">13,047</span> loans in <span data-h="trusts">376</span> trusts that still report. Pool balances tie to the trustees' 10-D statements within 0.5% in 20,377 of 22,863 trust-months; most of the rest trace to a named defect in the filings. Every cleaning choice is logged in the project's decision log (<a href="/data.html">data and code</a>).</p>
+        </div></section>
+
+      <section class="section" id="definitions" aria-labelledby="h-def"><div class="rail"><span class="idx">02</span><span class="label">Definitions</span></div>
+        <div class="body"><h2 id="h-def">What each number means</h2>
+          <dl class="defs-grid">
+            <dt>12-month distress</dt><dd>For a loan performing today (current or under 30 days late, not in special servicing, not past maturity): within 12 months it goes 60 or more days delinquent, transfers to special servicing, is modified, fails to pay at maturity, or is liquidated.</dd>
+            <dt>Failure to refinance</dt><dd>The loan is not paid in full within 90 days after its maturity date. Scored for loans 2.5 to 24 months from maturity.</dd>
+            <dt>Refinance gap</dt><dd>What a loan owes beyond the largest new loan a lender would make today: the smallest of the loan-to-value, debt service coverage and debt yield limits, at the 10-year Treasury plus CBRE's lending spread.</dd>
+            <dt>Value</dt><dd>Stressed NOI divided by a cap rate set relative to the market: the property's spread over its type's benchmark at securitization, carried to today's benchmark.</dd>
+            <dt>Value bid</dt><dd>Value less a year of capital reserves, the cost of leasing listed tenant space that rolls within a year, and the buyer's closing costs.</dd>
+            <dt>Return bid</dt><dd>The price at which a buyer with a bridge loan earns the hurdle (20% levered) over a five-year hold.</dd>
+            <dt>Implied bid and discount</dt><dd>The lower of the two bids, and one minus the bid over the loan balance. A bid above the balance means the loan is refinanceable by sale.</dd>
+            <dt>Confidence tier</dt><dd>A for multifamily, industrial and self-storage with current NOI; B for office and retail (rollover is lease by lease and only three tenants are listed); C for lodging, mixed use and other, or any loan with stale, partial or no size data: value bid only.</dd>
+          </dl></div></section>
+
+      <section class="section" id="models" aria-labelledby="h-mod"><div class="rail"><span class="idx">03</span><span class="label">Models</span></div>
+        <div class="body prose"><h2 id="h-mod">Tested out of time, out of loan, against simple rules</h2>
+          <p>The 12-month distress model is a logistic regression on 63 loan, property, servicing and market inputs plus property type and payment status, with its credit signs held to credit logic: more debt yield, DSCR or occupancy can't raise risk, and more leverage or a higher refinance rate can't lower it. The failure-to-refinance model is a logistic regression on 18 inputs, fit on the 431 loans that reached maturity inside the data (173 failed), with the same sign rule.</p>
+          <p>Each test year starts on a date D. A model for that year was fit only on months whose outcome was public by D, tuned and calibrated on the 12 months before, and scored on the year from D. Whole loans were split into five groups, and each group's months were scored by models that never saw that loan. The baselines are the rules a lender would reach for: the base rate, debt yield under 7 to 10% and as a rank, DSCR under 1.00 to 1.25, and a positive refinance gap.</p>
+          <div id="metrics"></div>
+          <div id="pr"></div>
+          <div id="calib"></div>
+          <h3>Failure at maturity, 12 months out</h3>
+          <div class="table-wrap"><table class="data"><thead><tr><th scope="col">Maturity year</th><th scope="col" class="r">Loans</th><th scope="col" class="r">Failed</th><th scope="col" class="r">PR-AUC</th><th scope="col" class="r">Best rule's PR-AUC</th><th scope="col" class="r">Brier</th><th scope="col" class="r">Base rate's Brier</th></tr></thead>
+            <tbody><tr><th scope="row">2024</th><td class="r">124</td><td class="r">65</td><td class="r">0.61</td><td class="r">0.55</td><td class="r">0.343</td><td class="r">0.326</td></tr>
+            <tr><th scope="row">2025</th><td class="r">58</td><td class="r">28</td><td class="r">0.72</td><td class="r">0.55</td><td class="r">0.249</td><td class="r">0.289</td></tr>
+            <tr><th scope="row">2026</th><td class="r">47</td><td class="r">16</td><td class="r">0.75</td><td class="r">0.63</td><td class="r">0.204</td><td class="r">0.228</td></tr></tbody>
+            <caption>It ranks better than every rule each year. In 2024 it lost to the base rate on Brier score; that year's model was fit on 89 loans. Source: project model card.</caption></table></div>
+          <h3>Where the models fail</h3>
+          <ul class="fails">
+            <li><b>Probability levels drift between years.</b> The calibration slope was inside the 0.8 to 1.2 band only in 2023. In 2022 the distress model forecast 0.2% on average against a realized 1.3%, because it had been calibrated on the COVID year. The ranking held up every year; the level didn't. The site reads probabilities as relative risk, with intervals and the rank within type.</li>
+            <li><b>The distress model carries almost no rate channel.</b> In the training years distress came mostly from 2020, when rates fell, so the sign rule holds the rate inputs near zero. Rate risk lives in the refinance gap and the maturity model.</li>
+            <li><b>The maturity model rests on 431 loans.</b> Its 90% intervals average 26 points wide, and property type does much of the work.</li>
+            <li><b>The refinance gap explained little of who failed at maturity.</b> <span id="mat-gap"></span></li>
+            <li><b>Coverage is not the market.</b> Registered conduit and single-borrower CMBS since 2017 is a slice of commercial real estate debt, and most 2016 deals, the source of the 2026 ten-year maturities, filed no loan-level data. Delinquency in this data tracks Trepp's published rate (correlation 0.97 over 94 months) at a lower level, because Trepp's universe includes older deals.</li>
+          </ul>
+        </div></section>
+
+      <section class="section" id="underwriting" aria-labelledby="h-uw"><div class="rail"><span class="idx">04</span><span class="label">Underwriting</span></div>
+        <div class="body prose"><h2 id="h-uw">From a loan to a bid</h2>
+          <p>For each loan with usable NOI the engine asks what a lender would lend today, what the property is worth, what a buyer could pay for it, and what that buyer earns over five years. The answer is an indicative economic bid for the property. A loan inside a CMBS trust is controlled by its special servicer, and buyers reach the asset by buying the note, buying the property after foreclosure, negotiating a discounted payoff or recapitalizing the sponsor; the bid is not an executable offer.</p>
+          <ol class="steps">
+            <li><b>Value.</b> In-place NOI, less the scenario's haircut, over a relative-value cap rate. In Los Angeles and Orange counties a sale resets the property tax to the price (Proposition 13), and value solves for it.</li>
+            <li><b>Refinance test.</b> The smallest of LTV, DSCR and debt-yield sizing at today's conduit floors; the gap is the balance above it.</li>
+            <li><b>Bids.</b> The value bid, and the return bid found exactly: the buyer's NPV at the hurdle is a straight line in price on each side of the point where the loan-to-value limit starts to bind.</li>
+            <li><b>Cash flows.</b> Five annual periods: NOI growth by type and metro, rent caps where local law sets them, lease rollover with renewal odds, downtime and leasing costs for office, retail and industrial, reserves, a bridge loan at the 5-year Treasury plus a spread, and a sale at the going-in cap rate plus 50 bp less selling costs and city transfer taxes (Measure ULA in the City of Los Angeles).</li>
+          </ol>
+          <p>Three loans were rebuilt in an Excel workbook with every step as a formula; the engine matches it to the cent, and the JavaScript engine running the <a href="/lab.html">scenario lab</a> matches the Python engine to the cent on 50 random loans. Across about 1.3 million steps of a rate and cap-rate grid, no gap shrank as rates rose and no value or bid rose with cap rates.</p>
+          <p>The opportunity score is the average of six percentile ranks: risk (in distress now, else failure or distress probability), refinance gap, discount to par, the levered return at the value bid, confidence tier and balance. It ranks loans for a closer look and nothing more.</p>
+          <div id="scen-table"></div>
+        </div></section>
+
+      <section class="section" id="parameters" aria-labelledby="h-par"><div class="rail"><span class="idx">05</span><span class="label">Parameters</span></div>
+        <div class="body"><h2 id="h-par">Every assumption, with its source</h2>
+          <p class="small">Each value was copied from a saved page or PDF and its quote checked by script against the saved text. Rows marked design are the project's own choices, explained in the decision log.</p>
+          <details class="src-group" open><summary>Underwriting and Los Angeles parameters <span>with sources and check dates</span></summary><div id="params"></div></details></div></section>
+
+      <section class="section" id="limits" aria-labelledby="h-lim"><div class="rail"><span class="idx">06</span><span class="label">Limitations</span></div>
+        <div class="body prose"><h2 id="h-lim">What the numbers can't see</h2>
+          <ul class="fails">
+            <li>Appraisal cap rates and broker-survey cap rates aren't the same measure: appraisals at securitization run below the survey (median office spread about -0.7 points). Every bid is shown with a cap-rate sensitivity.</li>
+            <li>Only three tenants are listed per property, with no rents; rent is spread evenly over occupied space.</li>
+            <li>California property taxes use an estimated seller's tax (the securitization appraisal grown 2% a year) and county average rates.</li>
+            <li>Reported NOI is often months old and sometimes annualized from part of a year; older or partial NOI lowers the confidence tier.</li>
+            <li>Multi-property loans are valued on pooled NOI, without listed-tenant rollover or local rules.</li>
+            <li>Nothing here knows a property's condition, its ground lease, the loan's own reserves, or who is willing to bid.</li>
+          </ul></div></section>
+
+      <section class="section" id="sources" aria-labelledby="h-src"><div class="rail"><span class="idx">07</span><span class="label">Sources</span></div>
+        <div class="body"><h2 id="h-src">Every outside source</h2>
+          <p class="small">Figures from firms' public reports are cited by publisher and date and used as single numbers; their tables and charts are not reproduced. Nothing behind a form or a login was used.</p>
+          <div id="src-list"></div></div></section>
+    </div>
+  </main>
+  <!-- @footer -->
+  <script type="module" src="/src/pages/method.js"></script>
+</body>
+</html>

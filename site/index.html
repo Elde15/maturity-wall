@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Maturity Wall: which CMBS loans can't refinance</title>
+  <meta name="description" content="A screen of 13,047 loans in SEC-registered CMBS trusts: the refinance gap at today's rates, each loan's chance of failing at maturity, and what its property is worth to a buyer.">
+  <meta property="og:title" content="Maturity Wall: which CMBS loans can't refinance">
+  <meta property="og:description" content="Refinance gaps, failure probabilities and indicative bids for 13,047 CMBS loans, from SEC loan-level filings.">
+  <meta property="og:type" content="website">
+  <meta property="og:image" content="/og.png">
+  <meta name="twitter:card" content="summary_large_image">
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="/src/styles/base.css">
+  <link rel="stylesheet" href="/src/styles/home.css">
+</head>
+<body>
+  <!-- @header -->
+  <!-- @banner -->
+  <main id="main">
+    <div class="shell">
+      <section class="hero" aria-labelledby="hero-h">
+        <p class="label hero-label">SEC loan-level filings &middot; valued <span data-meta="valuation_date">November 12, 2026</span></p>
+        <h1 id="hero-h">Lenders would refinance <span class="hero-num" data-h="gap_base">$49.3 billion</span> less than these CMBS loans owe.</h1>
+        <p class="lede">A screen of <span data-h="loans_scored">13,047</span> commercial mortgages in <span data-h="trusts">376</span> SEC-registered CMBS trusts: which can't refinance at today's rates, how likely each is to fail when it comes due, and what its property is worth to a buyer who needs a <span data-h="hurdle">20%</span> return.</p>
+        <p class="hero-cta"><a class="btn" href="/loans.html">Find loans by risk and discount</a> <a class="textlink" href="/method.html">How the numbers are made</a></p>
+        <div id="hero-fig"></div>
+      </section>
+
+      <section class="section" aria-labelledby="f-h">
+        <div class="rail"><span class="idx">01</span><span class="label">What it found</span></div>
+        <div class="body">
+          <h2 id="f-h">Four findings</h2>
+          <ol class="findings" id="findings"></ol>
+        </div>
+      </section>
+
+      <section class="section" aria-labelledby="s-h">
+        <div class="rail"><span class="idx">02</span><span class="label">Where to go next</span></div>
+        <div class="body">
+          <h2 id="s-h">The rest of the work</h2>
+          <dl class="toc">
+            <dt><a href="/wall.html">The wall</a></dt>
+            <dd>The debt coming due by year and property type, where the gap is worst, and how it moves with rates.</dd>
+            <dt><a href="/loans.html">Loans</a></dt>
+            <dd>Every scored loan on a map and in a sortable table, each with a one-page tear sheet and links to its SEC filings.</dd>
+            <dt><a href="/lab.html">Scenario lab</a></dt>
+            <dd>Move Treasury yields, spreads, cap rates and NOI, and watch gaps, values, bids and returns recompute.</dd>
+            <dt><a href="/los-angeles.html">Los Angeles</a></dt>
+            <dd>The case study: one metro's loans, its transfer taxes and rent rules, and three to five loans in full.</dd>
+            <dt><a href="/method.html">Method</a></dt>
+            <dd>Data, definitions, how the models were tested, what they get wrong, and every outside source.</dd>
+          </dl>
+        </div>
+      </section>
+    </div>
+  </main>
+  <!-- @footer -->
+  <script type="module" src="/src/pages/home.js"></script>
+</body>
+</html>

@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Data and code: download the loan table, rebuild the project</title>
+  <meta name="description" content="Download the scored CMBS loan table, read the data dictionary and the data contract, and rebuild the project from public SEC filings.">
+  <meta property="og:title" content="Maturity Wall data and code">
+  <meta property="og:image" content="/og.png">
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="/src/styles/base.css">
+  <link rel="stylesheet" href="/src/styles/method.css">
+</head>
+<body>
+  <!-- @header -->
+  <!-- @banner -->
+  <main id="main">
+    <div class="shell">
+      <header class="page-head">
+        <span class="label">Data and code</span>
+        <h1>Take the table, check the work</h1>
+        <p class="lede">The loan table behind every page is a download. The code, the decision log and the QA reports are in the repository, and a fixture of two trusts rebuilds with one command.</p>
+      </header>
+      <section class="section" aria-labelledby="h-dl"><div class="rail"><span class="idx">01</span><span class="label">Download</span></div>
+        <div class="body prose"><h2 id="h-dl">The scored loans</h2>
+          <p><a class="btn" href="/data/loans.csv" download>Download loans.csv</a></p>
+          <p class="small">One row per scored loan, <span id="n-rows"></span> rows. Probabilities are model estimates; gap, value, bids and discount are the base scenario as of <span data-meta="valuation_date"></span>. Data cut-off <span data-meta="data_cutoff"></span>, schema version <span data-meta="schema_version"></span>, built <span data-meta="build_date"></span> from commit <span data-meta="commit"></span>. Screening research, not investment advice.</p>
+          <div id="dict"></div></div></section>
+      <section class="section" aria-labelledby="h-contract"><div class="rail"><span class="idx">02</span><span class="label">Data contract</span></div>
+        <div class="body prose"><h2 id="h-contract">What the site reads</h2>
+          <p>The site is static: every model ran offline, and the browser only filters, maps and reruns the underwriting arithmetic. Each file carries its build date, data cut-off and schema version.</p>
+          <dl class="defs-grid">
+            <dt><a href="/data/summary.json">summary.json</a></dt><dd>Headline numbers and every chart series on the home, wall and method pages.</dd>
+            <dt><a href="/data/loans.json">loans.json</a></dt><dd>The loan table, columnar, for the explorer.</dd>
+            <dt><a href="/data/uw.json">uw.json</a></dt><dd>Underwriting inputs per loan at full precision, for the browser engine.</dd>
+            <dt><a href="/data/scenarios.json">scenarios.json</a></dt><dd>Scenarios, engine parameters, market inputs and the parameter table with sources.</dd>
+            <dt>history/<i>xx</i>.json</dt><dd>Per-loan filing history, facts, model drivers and underwriting inputs, in 256 files keyed by the loan id's first two hex digits; read by the tear sheet.</dd>
+            <dt><a href="/data/sources.json">sources.json</a></dt><dd>Every outside source, by purpose.</dd>
+          </dl></div></section>
+      <section class="section" aria-labelledby="h-code"><div class="rail"><span class="idx">03</span><span class="label">Code</span></div>
+        <div class="body prose"><h2 id="h-code">Rebuild it</h2>
+          <p>The repository is <a href="https://github.com/Elde15/maturity-wall">github.com/Elde15/maturity-wall</a>. It holds the pipeline (Python), the site (Vite and plain JavaScript), the project plan, a decision log with every departure from it, and the QA report for each of the six gates. Raw filings are not in the repository; the pipeline downloads them from EDGAR.</p>
+          <pre class="code"><code>uv sync --extra model
+uv run pytest                      # unit, golden-file, engine and site tests
+uv run python -m mwall fixture     # two trusts, three snapshots: rebuild and compare with stored outputs
+
+# full build (hours). SEC asks scripted clients to declare a contact: set your own name and email
+export SEC_CONTACT="..."
+uv run python -m mwall index &amp;&amp; uv run python -m mwall discover &amp;&amp; uv run python -m mwall filings
+uv run python -m mwall download &amp;&amp; uv run python -m mwall parse &amp;&amp; uv run python -m mwall clean
+uv run python -m mwall panel &amp;&amp; uv run python -m mwall features --fetch
+uv run python -m mwall model &amp;&amp; uv run python -m mwall underwrite --places
+uv run python -m mwall site        # writes site/public/data
+cd site &amp;&amp; npm ci &amp;&amp; npm run build</code></pre>
+        </div></section>
+    </div>
+  </main>
+  <!-- @footer -->
+  <script type="module" src="/src/pages/data.js"></script>
+</body>
+</html>

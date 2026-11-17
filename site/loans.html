@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Loans: every scored CMBS loan, by risk and discount</title>
+  <meta name="description" content="Map and sortable table of 13,047 CMBS loans with failure and distress probabilities, refinance gaps, implied bids and links to each loan's SEC filings.">
+  <meta property="og:title" content="Every scored CMBS loan, by risk and discount">
+  <meta property="og:image" content="/og.png">
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="/src/styles/base.css">
+  <link rel="stylesheet" href="/src/styles/loans.css">
+</head>
+<body>
+  <!-- @header -->
+  <!-- @banner -->
+  <main id="main">
+    <div class="shell">
+      <header class="page-head">
+        <span class="label">Loans</span>
+        <h1>Find loans by risk, gap and discount</h1>
+        <p class="lede">Every scored loan in the latest filings. Filter, sort, and open any loan for its full tear sheet and the SEC filings behind it. Gaps and bids are in the base scenario.</p>
+      </header>
+
+      <form class="filters" id="filters" aria-label="Filter loans">
+        <label class="control"><span class="label">Search</span><input type="search" name="q" placeholder="Property, city or trust" autocomplete="off"></label>
+        <label class="control"><span class="label">Property type</span><select name="type"><option value="">All types</option></select></label>
+        <label class="control"><span class="label">State</span><select name="state"><option value="">All states</option></select></label>
+        <label class="control"><span class="label">Status</span><select name="status"><option value="">Any status</option></select></label>
+        <label class="control"><span class="label">Matures</span><select name="mat"><option value="">Any year</option></select></label>
+        <label class="control"><span class="label">Risk band</span><select name="band"><option value="">Any band</option></select></label>
+        <label class="control"><span class="label">Balance</span><select name="bal">
+          <option value="">Any size</option><option value="10e6">$10M or more</option><option value="50e6">$50M or more</option>
+          <option value="100e6">$100M or more</option><option value="250e6">$250M or more</option></select></label>
+        <label class="control check"><input type="checkbox" name="gap"> <span>Refinance gap only</span></label>
+      </form>
+
+      <p class="count" id="count" aria-live="polite"></p>
+
+      <figure class="fig map-fig">
+        <ul class="legend" id="map-legend"></ul>
+        <div class="map" id="map"></div>
+        <figcaption class="fig-foot"><span class="src" id="band-rule"></span><span>Dot area shows balance. Map shows loans with a geocoded address.</span></figcaption>
+      </figure>
+
+      <div class="table-wrap loans-table">
+        <table class="data" id="tbl">
+          <caption>Probabilities are model estimates (precomputed); gap, bid and discount are the base scenario. Sorted by the column marked with an arrow.</caption>
+          <thead><tr>
+            <th scope="col" data-k="name"><button class="sort" type="button">Property</button></th>
+            <th scope="col" data-k="type"><button class="sort" type="button">Type</button></th>
+            <th scope="col" data-k="status"><button class="sort" type="button">Status</button></th>
+            <th scope="col" class="r" data-k="bal"><button class="sort" type="button">Balance</button></th>
+            <th scope="col" class="r" data-k="mat"><button class="sort" type="button">Matures</button></th>
+            <th scope="col" class="r" data-k="risk"><button class="sort" type="button">Probability</button></th>
+            <th scope="col" class="r" data-k="gap_pct"><button class="sort" type="button">Gap</button></th>
+            <th scope="col" class="r" data-k="disc"><button class="sort" type="button">Discount</button></th>
+            <th scope="col" class="r" data-k="opp" aria-sort="descending"><button class="sort" type="button">Score</button></th>
+          </tr></thead>
+          <tbody></tbody>
+        </table>
+      </div>
+      <p class="more-row"><button class="btn" type="button" id="more">Show 50 more</button></p>
+      <dl class="defs small">
+        <dt>Probability</dt><dd>Failure-to-refinance probability for loans 2.5 to 24 months from maturity (marked F); otherwise the 12-month distress probability (marked D). Rankings are reliable; levels drift between years (<a href="/method.html#models">method</a>).</dd>
+        <dt>Gap</dt><dd>Refinance gap as a share of the balance: what the loan owes beyond the largest new loan a lender would make today.</dd>
+        <dt>Discount</dt><dd>One minus the implied bid over the balance. Zero means the property could be sold for enough to repay the loan.</dd>
+        <dt>Score</dt><dd>Opportunity score, 0 to 100: the average percentile of risk, gap, discount, returns at market value, confidence tier and size (<a href="/method.html#underwriting">method</a>).</dd>
+      </dl>
+    </div>
+  </main>
+  <!-- @footer -->
+  <script type="module" src="/src/pages/loans.js"></script>
+</body>
+</html>
