@@ -1,0 +1,70 @@
+parameter,property_group,value,unit,sources,rule,checked,notes
+tier,office,B,tier,docs/SOP.md section 12,as specified,2026-11-16,lease-by-lease rollover from the three listed tenants
+tier,retail,B,tier,docs/SOP.md section 12,as specified,2026-11-16,anchor rollover from the three listed tenants
+tier,industrial,A,tier,docs/SOP.md section 12,as specified,2026-11-16,A with current NOI
+tier,multifamily,A,tier,docs/SOP.md section 12,as specified,2026-11-16,A with current NOI
+tier,self_storage,A,tier,docs/SOP.md section 12,as specified,2026-11-16,A with current NOI
+tier,lodging,C,tier,docs/SOP.md section 12,as specified,2026-11-16,direct capitalization only
+tier,mixed_use,C,tier,docs/SOP.md section 12,as specified,2026-11-16,direct capitalization only
+tier,other,C,tier,docs/SOP.md section 12,as specified,2026-11-16,direct capitalization only
+noi_growth,office,1.0,pct_per_year,underwriting_sources.csv:147;148,judgment below the printed range,2026-11-16,national office rent growth prints at 1.9% (NAR/CoStar current) and 2.7% (CBRE 2026 forecast); CBRE says the highest-quality space drives its number and distressed office is mostly non-prime
+noi_growth,retail,1.7,pct_per_year,underwriting_sources.csv:152,as printed,2026-11-16,CBRE five-year nominal rent CAGR (2026-2031)
+noi_growth,industrial,1.8,pct_per_year,underwriting_sources.csv:157,as printed,2026-11-16,CBRE 2026 asking-rent growth forecast
+noi_growth,multifamily,2.0,pct_per_year,underwriting_sources.csv:165,as printed,2026-11-16,Yardi 2027 forecast via NAR; the first growth year uses the metro's Zillow multifamily rent index change where available (SOP 12 template)
+noi_growth,self_storage,1.25,pct_per_year,underwriting_sources.csv:167;168,midpoint of the two guidance midpoints,2026-11-16,Extra Space 2.0-2.5% and Public Storage 0.0-0.5% same-store revenue guidance for 2026: (2.25 + 0.25) / 2
+noi_haircut_downside,office,12.95,pct_of_noi,underwriting_sources.csv:209;210;211;212,median,2026-11-16,KBRA sustainable NCF below issuer NCF on four 2026 office SASB deals (7.3; 12.9; 13.0; 16.3)
+noi_haircut_downside,retail,9.1,pct_of_noi,underwriting_sources.csv:213,as printed,2026-11-16,one retail-heavy SASB deal
+noi_haircut_downside,industrial,10.65,pct_of_noi,underwriting_sources.csv:214;215;216;217;218;219,median,2026-11-16,six industrial SASB deals
+noi_haircut_downside,multifamily,5.6,pct_of_noi,underwriting_sources.csv:220;221;222,median,2026-11-16,three multifamily SASB deals
+noi_haircut_downside,lodging,9.0,pct_of_noi,underwriting_sources.csv:223;224;225;226,median,2026-11-16,four lodging SASB deals
+noi_haircut_downside,self_storage,10.3,pct_of_noi,underwriting_sources.csv:227;228;229,median,2026-11-16,three self-storage SASB deals
+noi_haircut_downside,mixed_use,12.25,pct_of_noi,underwriting_sources.csv:195;196;197;198;199;200;201;202;203;204;205;206;207;208,median,2026-11-16,conduit pools (all types); no mixed-use source
+noi_haircut_downside,other,12.25,pct_of_noi,underwriting_sources.csv:195;196;197;198;199;200;201;202;203;204;205;206;207;208,median,2026-11-16,conduit pools (all types)
+downtime_months,office,9.0,months,underwriting_sources.csv:121,midpoint,2026-11-16,6 to 12 months; software-vendor primer (low weight)
+downtime_months,retail,4.5,months,underwriting_sources.csv:122,midpoint,2026-11-16,3 to 6 months; low weight
+downtime_months,industrial,4.5,months,underwriting_sources.csv:123,midpoint,2026-11-16,3 to 6 months; low weight
+renewal_prob,office,52.0,pct,underwriting_sources.csv:126,midpoint,2026-11-16,Brandywine 2026 guidance 51-53%
+renewal_prob,retail,79.4,pct,underwriting_sources.csv:127,low end (by count),2026-11-16,Brixmor retention by count; 86.7% by area
+renewal_prob,industrial,75.8,pct,underwriting_sources.csv:128,low end (year to date),2026-11-16,STAG year-to-date retention; the 90.3% single quarter is noisy
+ti_lc_new_psf,office,42.09,usd_per_sf,underwriting_sources.csv:110,as printed,2026-11-16,OPI new leases: tenant improvements; commissions and concessions
+ti_lc_new_psf,retail,18.49,usd_per_sf,underwriting_sources.csv:107;114,sum,2026-11-16,Brixmor new leases: TI 10.61 + third-party commissions 7.88
+ti_lc_new_psf,industrial,3.54,usd_per_sf,underwriting_sources.csv:111,as printed,2026-11-16,STAG new leases total leasing cost
+ti_lc_renewal_psf,office,22.92,usd_per_sf,underwriting_sources.csv:112,as printed,2026-11-16,OPI renewals
+ti_lc_renewal_psf,retail,1.19,usd_per_sf,underwriting_sources.csv:108,sum,2026-11-16,Brixmor renewals: TI 1.08 + commissions 0.11
+ti_lc_renewal_psf,industrial,1.41,usd_per_sf,underwriting_sources.csv:113,as printed,2026-11-16,STAG renewals
+lease_term_years,office,6.7,years,underwriting_sources.csv:261,as printed,2026-11-16,OPI 2025 leasing: weighted average term of new leases and renewals
+lease_term_years,retail,8.86,years,underwriting_sources.csv:107;108,derived,2026-11-16,Brixmor TTM: new 10.7 years on 2;853;327 sf and renewals 7.0 years on 2;815;490 sf; weighted by square feet
+lease_term_years,industrial,4.93,years,underwriting_sources.csv:111;113,derived,2026-11-16,STAG 2025: new 5.5 years on 3;404;696 sf and renewals 4.8 years on 14;376;660 sf; weighted by square feet
+reserve,office,0.25,usd_per_sf_per_year,underwriting_sources.csv:99;100,top of the lender range; appraiser's conclusion,2026-11-16,CLS CRE $0.10-0.25; a 2019 CBD office appraisal concluded $0.25 against a $0.29 survey average
+reserve,retail,0.175,usd_per_sf_per_year,underwriting_sources.csv:101,midpoint,2026-11-16,CLS CRE $0.10-0.25 (low weight broker convention)
+reserve,industrial,0.175,usd_per_sf_per_year,underwriting_sources.csv:102,midpoint,2026-11-16,CLS CRE $0.10-0.25 (low weight broker convention)
+reserve,self_storage,0.175,usd_per_sf_per_year,underwriting_sources.csv:102,by analogy to industrial,2026-11-16,no self-storage reserve source was found
+reserve,mixed_use,0.175,usd_per_sf_per_year,underwriting_sources.csv:101,by analogy to retail,2026-11-16,used only in the value bid
+reserve,other,0.175,usd_per_sf_per_year,underwriting_sources.csv:101,by analogy to retail,2026-11-16,used only in the value bid
+reserve,multifamily,250,usd_per_unit_per_year,underwriting_sources.csv:97;98,low end of the market convention,2026-11-16,CLS CRE $250-300; Fannie Mae floor $200
+reserve,lodging,4.0,pct_of_revenue_per_year,underwriting_sources.csv:103;104;105,as printed,2026-11-16,FF&E reserve; used only in the value bid
+bridge_spread_bps,office,425,bps,underwriting_sources.csv:51;56;57,midpoint of the research base 400-450,2026-11-16,KKR office 260-320 only at 48-60% LTV; TRTX 410 at 70% LTV
+bridge_spread_bps,retail,350,bps,underwriting_sources.csv:51,low end of the broker universe,2026-11-16,no institutional retail bridge spread found
+bridge_spread_bps,industrial,300,bps,underwriting_sources.csv:58;59,between the two printed ranges,2026-11-16,KKR 240-280; CLS 275-375
+bridge_spread_bps,multifamily,300,bps,underwriting_sources.csv:52;53;54;60;61,institutional book average,2026-11-16,KKR 290; TRTX 302 and 308; KKR multifamily 230-390; CLS light value-add 275-350
+bridge_spread_bps,self_storage,350,bps,underwriting_sources.csv:51,low end of the broker universe,2026-11-16,no self-storage bridge spread found
+ltc,all,75,pct_of_cost,underwriting_sources.csv:41;42,as printed,2026-11-16,multifamily bridge 70-75% (CLS); 75% (NewPoint 2026); applied to every type
+ltv_asis,all,65,pct_of_value,underwriting_sources.csv:46;47;49,as printed,2026-11-16,KKR senior book 65%; TRTX 65.9%; Granite Point 65.2-69.0%
+ltv_asis,office,60,pct_of_value,underwriting_sources.csv:50,low end,2026-11-16,distressed office and hospitality capped at 60-65%
+ltv_asis,lodging,60,pct_of_value,underwriting_sources.csv:50,low end,2026-11-16,distressed office and hospitality capped at 60-65%
+acq_treasury_tenor,all,5,years,docs/decisions.md D057,design,2026-11-16,bridge spreads are quoted over SOFR; the 5-year Treasury stands in for the average short rate over the five-year hold
+buyer_closing_pct,all,2.0,pct_of_price,underwriting_sources.csv:88;89,rounded down from the derived 2.15,2026-11-16,closing and financing costs; probably high for large deals
+selling_cost_pct,all,2.0,pct_of_price,underwriting_sources.csv:80,as printed,2026-11-16,generic convention; includes a transfer tax under 1%
+selling_cost_pct_high_tax,all,4.0,pct_of_price,underwriting_sources.csv:81,as printed,2026-11-16,Manhattan office; applied to New York City; San Francisco and Philadelphia counties
+exit_cap_spread_bps,all,50,bps,underwriting_sources.csv:72;73,as printed,2026-11-16,10 bp per hold year over five years; CBRE calls 50-60 bp the more typical level
+hurdle_levered_irr,all,20,pct,underwriting_sources.csv:11,rounded,2026-11-16,Knight Frank opportunistic levered mean 20.1%; gross
+hurdle_levered_irr_value_add,all,16,pct,underwriting_sources.csv:5;7,as printed,2026-11-16,Crow XI 16% gross; Knight Frank value-add mean 16.1%; used as a sensitivity
+renovation_cost_per_unit,multifamily,19661,usd_per_unit,underwriting_sources.csv:132,as printed,2026-11-16,IRT 2025 program; value-add scenario only
+renovation_roc,multifamily,15.3,pct_per_year,underwriting_sources.csv:145,as printed,2026-11-16,IRT 2025 return on cost on the same program ($251 a month on $19;661)
+management_fee,all,0,pct_of_revenue,config/sec_cmbs_schema_elements.csv:operatingExpensesAmount,not deducted,2026-11-16,the filed operating expenses include management fees (Schedule AL item 2(d)(28)(vii)); deducting again would count them twice
+hold_years,all,5,years,docs/SOP.md section 12,as specified,2026-11-16,annual periods; exit on year-six NOI
+noi_current_max_age_months,all,18,months,docs/decisions.md D057,design,2026-11-16,older NOI drops one confidence tier
+noi_max_age_months,all,36,months,docs/decisions.md D057,design,2026-11-16,older NOI is not used
+noi_partial_min_months,all,6,months,docs/decisions.md D057,design,2026-11-16,NOI annualized from fewer months drops one confidence tier
+cap_spread_clip_pct,all,10,percentile,docs/decisions.md D057,design,2026-11-16,the securitization cap-rate spread is held to its 10th and 90th percentile within property type (5th and 95th left 222 multifamily loans at the floor)
+cap_rate_floor,all,3.5,pct,docs/decisions.md D057,design,2026-11-16,a guard; reached only when cap rates are shifted down in the sensitivity grid

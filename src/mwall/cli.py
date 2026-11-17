@@ -101,6 +101,22 @@ def cmd_model(args) -> None:
     run.run(tuple(args.stage) if args.stage else run.STAGES, log=_log)
 
 
+def cmd_underwrite(args) -> None:
+    from mwall.underwrite import run
+
+    if args.places:
+        from mwall.underwrite import inputs, places
+
+        inputs.build(log=_log)
+        places.build(log=_log)
+    if args.handcheck:
+        from mwall.underwrite import handcheck
+
+        handcheck.build(log=_log)
+        handcheck.recalc()
+    run.main(log=_log)
+
+
 def cmd_census(args) -> None:
     from mwall.parse import census
 
@@ -195,6 +211,13 @@ def main(argv: list[str] | None = None) -> None:
     s = sub.add_parser("model", help="Gate 3 models: rolling-origin evaluation and robustness (SOP 10-11)")
     s.add_argument("--stage", action="append", help="rolling, ablations, family (default: all, in order)")
     s.set_defaults(func=cmd_model)
+
+    s = sub.add_parser("underwrite", help="Gate 4 underwriting engine: scenarios, bids, sensitivity (SOP 12)")
+    s.add_argument("--places", action="store_true", help="look up Los Angeles and Orange County cities first "
+                   "(Census geocoder; network)")
+    s.add_argument("--handcheck", action="store_true", help="rebuild the hand-check workbook and recalculate it "
+                   "in Excel (Windows with Excel only)")
+    s.set_defaults(func=cmd_underwrite)
 
     s = sub.add_parser("loandetail", help="vintage-2016 10-D loan detail tables (D033 pilot): fetch and/or parse")
     s.add_argument("--fetch", action="store_true")

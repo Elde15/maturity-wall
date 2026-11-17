@@ -1,0 +1,4 @@
+scenario,label,refi_lender_set,rate_shift_bps,cap_shift_bps,noi_haircut,hurdle_param,renovation,sources,notes
+base,Base,lender_2025,0,0,none,hurdle_levered_irr,off,docs/decisions.md D057,"today's Treasury yields, CBRE lending spreads and cap-rate benchmarks; current conduit sizing floors (Greystone 2025-26 schedule); in-place NOI"
+downside,Downside,stress,100,50,noi_haircut_downside,hurdle_levered_irr,off,docs/decisions.md D057,"rates 100 bp higher, cap rates 50 bp higher, NOI cut by KBRA's haircut for the type, refinance DSCR test at 1.40x (Fitch interest-only test)"
+value_add,Value-add,lender_2025,0,0,none,hurdle_levered_irr,on,docs/decisions.md D057,"base plus a multifamily unit renovation program at the IRT 2025 cost and return on cost; no renovation where local rent control blocks the premium"
