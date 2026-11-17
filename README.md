@@ -6,7 +6,7 @@ This repo answers that from the loan-level data that registered CMBS trusts file
 
 A research project by Eli Della Bitta. Views are my own.
 
-**Status (November 2026): all six gates passed** (data, features and labels, models, underwriting engine, website, publication). Sign-offs and the limitations they publish: `docs/qa/gate1_signoff.md` to `docs/qa/gate6_signoff.md`; a second reader's 57 notes and what changed are in `docs/qa/gate6_review.md`. The site is built and hosted, but stays private until the author publishes it. The feature dictionary is `docs/features.md`, the label definitions `docs/labels.md`, the model card `docs/model_card.md` and the underwriting method `docs/underwriting.md`. The site is in `site/` (design brief `site/DESIGN.md`); the Los Angeles case study memo is `docs/la/memo.md`. The plan is `docs/SOP.md`; every departure from it is in `docs/decisions.md`.
+**Status (November 2026): all six gates passed** (data, features and labels, models, underwriting engine, website, publication). Sign-offs and the limitations they publish: `docs/qa/gate1_signoff.md` to `docs/qa/gate6_signoff.md`; a second reader's 57 notes and what changed are in `docs/qa/gate6_review.md`. The site is live at https://maturity-wall.eli-dellabitta.workers.dev. The feature dictionary is `docs/features.md`, the label definitions `docs/labels.md`, the model card `docs/model_card.md` and the underwriting method `docs/underwriting.md`. The site is in `site/` (design brief `site/DESIGN.md`); the Los Angeles case study memo is `docs/la/memo.md`. The plan is `docs/SOP.md`; every departure from it is in `docs/decisions.md`.
 
 ## What the work found
 

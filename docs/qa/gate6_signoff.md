@@ -1,8 +1,7 @@
 # Gate 6 sign-off: publication
 
-Signed off 2026-11-16, with the author's approval to publish the repository. The repository becomes public on GitHub; the
-site stays private until the author publishes it (D063), so the plan's definition of done ("the site is live") is not yet
-met. Decisions D064 to D066 record what this gate changed.
+Signed off 2026-11-16, with the author's approval to publish. The repository is public on GitHub under the MIT License,
+and the site is live at https://maturity-wall.eli-dellabitta.workers.dev (D067). Decisions D064 to D067 record what this gate changed.
 
 ## Checklist (SOP section 15)
 
@@ -29,8 +28,19 @@ SEC schema elements, project plan) return 200. That clears the seven new failure
 page, one of the fourteen from Gate 5. Thirteen remain: twelve government and publisher pages that refuse automated
 requests (each opens in a browser) and the author's unregistered domain.
 
-## What's left for the definition of done
+## Site publication
 
-- The site goes live when the author says so: either Cloudflare Access on the Worker's address for a private preview,
-  or the public address switched on (`site/wrangler.jsonc`, D063).
-- The author's domain, elidellabitta.com, is linked from the footer and doesn't resolve until it is registered.
+On the author's word, `site/wrangler.jsonc` switched the workers.dev address on (per-version preview URLs stay off) and
+the site was deployed with the pinned wrangler 4.163.0 from the committed config, built at 2b0fddf (D067). A dry run
+first confirmed the deploy read that config; a stale redirect file left in the git-ignored `site/.wrangler/` folder by
+the D063 incident was removed. Checks against the live address:
+
+- Every page, the data files and the social image return 200; an unknown path returns the site's 404 page. Links ending
+  in `.html` redirect once to the extensionless address (the `auto-trailing-slash` setting), with query strings kept.
+- Link crawl: 1,619 links on 23 rendered pages; all 104 internal links resolve, no page throws an error. Fourteen
+  external links fail: the author's unregistered domain and thirteen government and publisher pages that refuse
+  automated requests (which ones vary from run to run).
+- Screenshots of the home, Los Angeles and loans pages at 1280 and 390px: no horizontal overflow, no console errors.
+
+All six gates have passed, the site is live, and the repository can be cloned and rebuilt: the plan's definition of done
+is met. The footer links the author's domain, elidellabitta.com, which resolves once it is registered.
