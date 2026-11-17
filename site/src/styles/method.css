@@ -19,3 +19,15 @@
 .src-group li .m { color: var(--muted); }
 .params td .s { display: block; font-size: var(--s-12); color: var(--muted); overflow-wrap: anywhere; }
 .params td.v { white-space: nowrap; font-weight: 600; color: var(--ink); }
+.trust { list-style: none; margin: var(--sp-5) 0 0; padding: 0 0 0 var(--sp-4); border-left: 3px solid var(--wall); display: grid; gap: var(--sp-3); max-width: 72ch; }
+.trust li { color: var(--ink-2); }
+.trust b { color: var(--ink); }
+.timeline { list-style: none; margin: var(--sp-4) 0 var(--sp-5); padding: 0; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); border-top: 2px solid var(--ink); max-width: 72ch; }
+.timeline li { padding: var(--sp-2) var(--sp-3) 0 0; font-size: var(--s-14); line-height: 1.45; }
+.timeline b { display: block; color: var(--ink); }
+.timeline span { color: var(--muted); }
+@media (max-width: 760px) { .timeline { grid-template-columns: repeat(2, minmax(0, 1fr)); row-gap: var(--sp-3); } }
+#definitions .body > h3 { margin: var(--sp-6) 0 0; }
+#definitions .body > h2 + h3 { margin-top: var(--sp-4); }
+#sizing { margin-bottom: var(--sp-5); }
+.prose > p.small { margin-top: var(--sp-5); color: var(--muted); }

@@ -14,13 +14,13 @@ const D = [
   ["bal", "Estimated whole-loan balance, dollars"],
   ["mat", "Maturity used by the models (anticipated repayment date where one exists)"],
   ["coupon", "Current interest rate, fraction"],
-  ["pf, pf_lo, pf_hi", "Failure-to-refinance probability and 90% interval (loans 2.5 to 24 months from maturity)"],
+  ["pf, pf_lo, pf_hi", "Maturity model: probability of failing to pay off at maturity, with 90% interval (loans 2.5 to 24 months from maturity)"],
   ["pd, pd_lo, pd_hi", "12-month distress probability and 90% interval (performing loans)"],
   ["dy, dscr, occ", "Debt yield (NOI over balance), reported DSCR, occupancy"],
   ["tier", "Underwriting confidence tier: A, B or C; blank if not underwritten"],
   ["gap, gap_pct", "Refinance gap in dollars and as a share of balance, base scenario"],
   ["value, vbid, rbid, bid, disc", "Model value, value bid, return bid, implied bid (lower of the two) and discount to balance, base scenario"],
-  ["opp", "Opportunity score, 0 to 100"],
+  ["opp", "Review priority, 0 to 100 (the project plan's opportunity score)"],
   ["lat, lon", "Geocoded property coordinates, three decimals"],
 ];
 document.getElementById("dict").innerHTML = `<h3>Columns</h3>${tableHTML({

@@ -11,7 +11,8 @@ special_city_tax,culver_city,extra_rate_from_3000000,2.55,pct_of_price,2021-04-0
 special_city_tax,culver_city,extra_rate_from_10000000,3.55,pct_of_price,2021-04-01,la_rules_sources.csv:31;34,2026-11-16,4.0% less 0.45%; whole price assumed
 prop13,la_county,tax_rate,1.179,pct_of_assessed_value,2024-07-01,la_rules_sources.csv:43;51,2026-11-16,BOE county average total rate (1% general levy plus voter debt); the parcel's own rate can differ
 prop13,orange_county,tax_rate,1.058,pct_of_assessed_value,2024-07-01,la_rules_sources.csv:43;52,2026-11-16,BOE county average total rate
-prop13,all,assessed_growth,2.0,pct_per_year,1978-06-06,la_rules_sources.csv:45;46,2026-11-16,assessed value resets to the price on purchase (row 44) and then grows at most 2% a year
+prop13,all,assessed_growth,2.0,pct_per_year,1978-06-06,la_rules_sources.csv:44;45;46,2026-11-16,assessed value resets to the price on purchase and then grows at most 2% a year
+prop13,all,assessed_value_cap,1,rule,1978-11-07,la_rules_sources.csv:84,2026-11-16,the assessed value is the lower of current market value and the adjusted base year value (Proposition 8); the seller's tax is capped at the tax on the property's current value
 rent_cap,la_city_rso,annual_cap,3.0,pct_per_year,2026-07-01,la_rules_sources.csv:53;54;57;58;59,2026-11-16,multifamily in the City of Los Angeles first built on or before 1978-10-01; later years follow 90% of CPI between 1% and 4%; held at the current 3%
 rent_cap,la_county_rstpo,annual_cap,1.919,pct_per_year,2026-07-01,la_rules_sources.csv:78;83,2026-11-16,multifamily in unincorporated Los Angeles County with a certificate of occupancy on or before 1995-02-01
 rent_cap,ab1482,annual_cap,8.7,pct_per_year,2026-08-01,la_rules_sources.csv:66;67;68;74,2026-11-16,other multifamily in Los Angeles and Orange counties 15 or more years old; sunsets 2030-01-01; never binds at the base growth rates

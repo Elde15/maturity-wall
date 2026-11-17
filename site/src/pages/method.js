@@ -1,29 +1,45 @@
 import { figure, legendHTML, lines, tableHTML } from "../lib/charts.js";
 import { getJSON, getScenarios, getSummary, stampMeta } from "../lib/data.js";
-import { escapeHTML, int, pct, typeLabel } from "../lib/format.js";
+import { escapeHTML, int, money, pct, typeLabel } from "../lib/format.js";
 
 stampMeta();
 const $ = (s) => document.getElementById(s);
 const [s, scen, src] = await Promise.all([getSummary(), getScenarios(), getJSON("/data/sources.json")]);
 const h = s.headline;
 document.querySelectorAll("[data-h]").forEach((el) => { const v = h[el.dataset.h]; if (v !== undefined) el.textContent = int(v); });
+const GH = "https://github.com/Elde15/maturity-wall/blob/main";
+
+// ------------------------------------------------------------------ national totals by type
+{
+  $("bal-total").textContent = money(h.balance_scored);
+  const t = h.by_type_all.filter((r) => r.type !== "not reported").sort((a, b) => b.balance - a.balance);
+  const nr = h.by_type_all.find((r) => r.type === "not reported");
+  $("by-type").textContent = `By type: ${t.map((r) => `${typeLabel(r.type).toLowerCase()} ${money(r.balance)} (${int(r.loans)} loans)`).join(", ")}${nr ? `; ${int(nr.loans)} loans (${money(nr.balance)}) report no type` : ""}.`;
+  $("bench-only").textContent = int(h.cap_benchmark_only);
+  $("bench-comp").textContent = int(h.cap_composite);
+}
 
 // ------------------------------------------------------------------ test metrics
 {
   const order = ["model", "debt yield rank", "debt yield < 10%", "DSCR < 1.25", "refinance gap > 0", "base rate"];
   const label = { model: "Distress model", "debt yield rank": "Debt yield, ranked", "debt yield < 10%": "Debt yield under 10%",
     "DSCR < 1.25": "DSCR under 1.25", "refinance gap > 0": "Refinance gap above zero", "base rate": "Base rate" };
+  const baseBrier = Object.fromEntries(s.model.metrics.filter((r) => r.model === "base rate").map((r) => [r.year, r.brier]));
   const rows = s.model.metrics.filter((r) => order.includes(r.model))
     .sort((a, b) => a.year - b.year || order.indexOf(a.model) - order.indexOf(b.model))
-    .map((r) => ({ ...r, name: `${r.year}: ${label[r.model]}` }));
+    .map((r) => ({ ...r, name: `${r.year}: ${label[r.model]}`, bss: 1 - r.brier / baseBrier[r.year],
+      range: r.pr_auc_lo != null ? `${r.pr_auc_lo.toFixed(3)} to ${r.pr_auc_hi.toFixed(3)}` : "",
+      slope: r.model === "model" ? r.cal_slope : null }));
+  const minN = Math.min(...rows.filter((r) => r.model === "model").map((r) => r.n));
   $("metrics").innerHTML = `<figure class="fig"><p class="fig-q">Test results by year, distress model against the rules</p>
-    <p class="fig-take">PR-AUC rewards ranking the rare distress events first (higher is better; the base rate is the event rate). Brier score measures probability error (lower is better). Top 10% is the share of the year's events among the riskiest tenth of loan-months.</p>
+    <p class="fig-take">PR-AUC rewards ranking the rare distress events first; higher is better, and a method with no skill scores about the event rate. The 90% range comes from resampling whole loans 200 times. Brier skill is how much smaller the model's probability error (Brier score) is than the base rate's: 0% is no better, negative is worse. Top 10% is the share of the year's events among the riskiest tenth of loan-months. Calibration slope, shown for the model only, says whether its probabilities are the right size: 1.0 is right, below 1 means they spread too far from the average, above 1 not far enough.</p>
     ${tableHTML({
-      columns: [{ key: "name", label: "Test year and model" }, { key: "events", label: "Events", r: 1, f: int }, { key: "pr_auc", label: "PR-AUC", r: 1, f: (v) => v.toFixed(3) },
-        { key: "brier", label: "Brier", r: 1, f: (v) => v.toFixed(4) }, { key: "top10_capture", label: "Top 10%", r: 1, f: (v) => pct(v, 0) },
-        { key: "cal_slope", label: "Calibration slope", r: 1, f: (v) => (v === null ? "" : v.toFixed(2)) }],
+      columns: [{ key: "name", label: "Test year and method" }, { key: "events", label: "Events", r: 1, f: int }, { key: "pr_auc", label: "PR-AUC", r: 1, f: (v) => v.toFixed(3) },
+        { key: "range", label: "90% range", r: 1 }, { key: "bss", label: "Brier skill", r: 1, f: (v) => `${v >= 0 ? "" : "-"}${Math.abs(v * 100).toFixed(1)}%` },
+        { key: "top10_capture", label: "Top 10%", r: 1, f: (v) => pct(v, 0) },
+        { key: "slope", label: "Calibration slope", r: 1, f: (v) => (v === null ? "" : v.toFixed(2)) }],
       rows,
-    })}<figcaption class="fig-foot"><span class="src">Out of time and out of loan; ${int(rows.find((r) => r.model === "model").n)} or more loan-months a year. Source: project Gate 3 runs.</span></figcaption></figure>`;
+    })}<figcaption class="fig-foot"><span class="src">Out of time and out of loan; ${int(minN)} or more loan-months a year. Source: the project's <a href="${GH}/docs/qa/gate3_models.md">model test report</a>.</span></figcaption></figure>`;
 }
 
 // ------------------------------------------------------------------ precision-recall, latest year
@@ -55,7 +71,7 @@ document.querySelectorAll("[data-h]").forEach((el) => { const v = h[el.dataset.h
   host.className = "calib-grid";
   const intro = figure($("calib"), {
     q: "Do the probabilities mean what they say?",
-    take: "Each dot is a tenth of the test year's loan-months: the model's average forecast against the share that went into distress. On the dashed line the forecasts are right. The 2022 dots sit above it (the model was calibrated on the COVID year and forecast too little distress); the ranking still held.",
+    take: "Each dot is a tenth of the test year's loan-months: the model's average forecast (across) against the share that went into distress (up). On the dashed line the forecasts are right. The 2022 dots sit above it: that model was calibrated on loan-months from late 2019 to late 2020, the first COVID year, and forecast too little distress. The ranking still held.",
     src: "Decile reliability, distress model, each test year.",
     table: () => ({ columns: [{ key: "y", label: "Year" }, { key: "f", label: "Forecast", r: 1, f: (v) => pct(v, 2) }, { key: "o", label: "Observed", r: 1, f: (v) => pct(v, 2) }],
       rows: yrs.flatMap((y) => s.model.calibration[y].forecast.map((f, i) => ({ y, f, o: s.model.calibration[y].observed[i] }))) }),
@@ -73,6 +89,7 @@ document.querySelectorAll("[data-h]").forEach((el) => { const v = h[el.dataset.h
     const c = s.model.calibration[y];
     lines(area, [{ label: String(y), color: "var(--water)", dots: true, points: c.forecast.map((f, i) => [f, c.observed[i]]) }],
       { xmax: top, ymax: top, diagonal: true, xfmt: (v) => pct(v, 0), yfmt: (v) => pct(v, 0), height: 220, aria: `Calibration, ${y}`,
+        xlabel: "Forecast", ylabel: "Observed",
         tip: (ser, p) => `<b>${y}</b><br>Forecast ${pct(p[0], 2)}<br>Observed ${pct(p[1], 2)}` });
   });
 }
@@ -81,6 +98,24 @@ document.querySelectorAll("[data-h]").forEach((el) => { const v = h[el.dataset.h
 {
   const m = s.maturity, off = m.by_type.find((r) => r.type === "office");
   $("mat-gap").textContent = `Loans with a positive gap 12 months before maturity failed ${pct(m.gap_positive.failed_share, 0)} of the time (${int(m.gap_positive.loans)} loans) against ${pct(m.gap_zero.failed_share, 0)} without one (${int(m.gap_zero.loans)}), and office failed ${pct(off.failed_share, 0)} of the time. Gaps can't be computed for ${pct(m.gap_missing_share, 0)} of loans a year from maturity, mostly where no cap-rate benchmark or NOI exists.`;
+}
+
+// ------------------------------------------------------------------ refinance terms
+{
+  const M = scen.market, lend = scen.engine.lender.filter((r) => r.scenario === "lender_2025");
+  const order = ["multifamily", "office", "retail", "industrial", "self_storage", "lodging", "mixed_use", "other"];
+  const rows = order.map((t) => lend.find((r) => r.property_group === t)).filter(Boolean).map((r) => {
+    const sp = M.spread_bps[r.spread_series] + r.spread_premium_bps;
+    return { type: r.property_group, ltv: r.ltv_max, dscr: r.dscr_min, dy: r.dy_min, am: r.amort_years, sp, rate: M.ust10 + sp / 1e4 };
+  });
+  $("sizing").innerHTML = tableHTML({
+    columns: [{ key: "type", label: "Type", f: typeLabel }, { key: "ltv", label: "Max LTV", r: 1, f: (v) => pct(v, 0) },
+      { key: "dscr", label: "Min DSCR", r: 1, f: (v) => `${v.toFixed(2)}x` }, { key: "dy", label: "Min debt yield", r: 1, f: (v) => pct(v, 2) },
+      { key: "am", label: "Amortization", r: 1, f: (v) => `${v} years` }, { key: "sp", label: "Spread", r: 1, f: (v) => `${Math.round(v)} bp` },
+      { key: "rate", label: "Refinance rate", r: 1, f: (v) => pct(v, 2) }],
+    rows,
+    caption: `Base scenario. The 10-year Treasury yield was ${pct(M.ust10, 2)} on ${M.treasury_date}. Spreads are CBRE's ${M.spread_quarter.commercial} lending spreads (commercial ${M.spread_bps.commercial} bp, multifamily ${M.spread_bps.multifamily} bp, published ${M.spread_publication.commercial}), plus 40 bp for office (the office premium in CRED iQ's spreads) and less 20 bp for industrial. Sizing floors are a commercial mortgage lender's (Greystone's) 2025-26 conduit schedule. The downside adds 100 bp to the rate and tests DSCR at 1.40x. Every figure is cited under Sources.`,
+  });
 }
 
 // ------------------------------------------------------------------ scenarios
@@ -98,14 +133,23 @@ $("scen-table").innerHTML = `<h3>Scenarios</h3>${tableHTML({
     const t = typeLabel(g);
     return escapeHTML(t !== "Type not reported" ? t : g.replace(/_/g, " "));
   };
-  const cite = (srcs) => srcs.map((c) => (c.url ? `<a href="${escapeHTML(c.url)}">${escapeHTML(c.publisher || c.row)}${c.date ? `, ${escapeHTML(c.date)}` : ""}</a>`
-    : escapeHTML(c.row))).join("; ");
+  const cite = (srcs) => srcs.map((c) => {
+    if (c.url) return `<a href="${escapeHTML(c.url)}">${escapeHTML(c.publisher || c.row)}${c.date ? `, ${escapeHTML(c.date)}` : ""}</a>`;
+    const row = c.row || "";
+    const d = /decisions\.md\s+(D\d+)/.exec(row);
+    if (d) return `<a href="${GH}/docs/decisions.md">decision log, ${d[1]}</a>`;
+    const sop = /SOP\.md\s+section\s+(\d+)/.exec(row);
+    if (sop) return `<a href="${GH}/docs/SOP.md">project plan, section ${sop[1]}</a>`;
+    const cfg = /^config\/([\w.]+\.csv):(\w+)$/.exec(row);
+    if (cfg) return `<a href="${GH}/config/${cfg[1]}">SEC CMBS schema, field ${cfg[2]}</a>`;
+    return escapeHTML(row);
+  }).join("; ");
   $("params").innerHTML = `<div class="table-wrap" tabindex="0" role="region" aria-label="Table"><table class="data params"><thead><tr><th scope="col">Parameter</th><th scope="col">Applies to</th>
     <th scope="col" class="r">Value</th><th scope="col">How chosen and source</th></tr></thead><tbody>${rows.map((p) => `<tr>
     <th scope="row">${escapeHTML(((p.file === "la_overrides.csv" ? `${p.rule} ` : "") + p.parameter).replace(/_/g, " "))}</th><td>${appliesTo(p)}</td>
     <td class="r v">${escapeHTML(p.value)} <span class="s">${escapeHTML((p.unit || "").replace(/_/g, " "))}</span></td>
     <td>${escapeHTML(p.file === "la_overrides.csv" ? "" : p.rule || "")}${p.notes ? `${p.file === "la_overrides.csv" ? "" : ": "}${escapeHTML(p.notes)}` : ""}<span class="s">${cite(p.sources)}; checked ${escapeHTML(p.checked)}</span></td></tr>`).join("")}
-    </tbody><caption>Underwriting and Los Angeles parameters. Lender sizing terms (LTV, DSCR, debt yield floors, amortization, spread premiums) follow the same rule and are listed under sources.</caption></table></div>`;
+    </tbody><caption>Underwriting and Los Angeles parameters. Lender sizing terms are in the table under Underwriting, with their sources listed under Sources.</caption></table></div>`;
 }
 
 // ------------------------------------------------------------------ sources

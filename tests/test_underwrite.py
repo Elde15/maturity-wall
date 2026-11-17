@@ -79,10 +79,20 @@ def test_prop13_value_is_the_fixed_point():
     assert L["jurisdiction"] == "la_city" and L["tax_rate"] == pytest.approx(0.01179)
     r = _run(L)
     V, c = r["value"], r["cap_rate"]
-    # a buyer at V pays tax tau * V instead of the seller's estimated tax
-    assert V * c == pytest.approx(r["noi_stressed"] + L["tax_current"] - L["tax_rate"] * V)
     yrs = (date(2026, 11, 12) - date(2018, 3, 1)).days / 365.25
-    assert L["tax_current"] == pytest.approx(0.01179 * 30e6 * 1.02 ** yrs)
+    assert L["tax_current"] == pytest.approx(0.01179 * 30e6 * 1.02 ** yrs)     # tax on the factored base
+    # today's value (NOI / c, about $30.8M) is below the factored base (about $35M), so Proposition 8 caps the seller's
+    # tax at the tax on today's value, and the buyer's tax change nets to zero
+    assert r["noi_stressed"] / c < 30e6 * 1.02 ** yrs
+    assert V == pytest.approx(r["noi_stressed"] / c)
+    assert r["seller_tax"] == pytest.approx(0.01179 * r["noi_stressed"] / c)
+    # a property worth more than its factored base: the buyer pays more tax than the seller, so value is lower
+    up = _run(_loan(property_group="office", sqft=100_000, units=None, county_fips="06037", place_geoid="0644000",
+                    place_source="census_geocoder", noi=4.0e6))
+    T = 0.01179 * 30e6 * 1.02 ** yrs
+    assert up["seller_tax"] == pytest.approx(T)
+    assert up["value"] * up["cap_rate"] == pytest.approx(up["noi_stressed"] + T - 0.01179 * up["value"])
+    assert up["value"] < up["noi_stressed"] / up["cap_rate"]
 
 
 # ------------------------------------------------------------------ edge cases (SOP 15, Gate 4)

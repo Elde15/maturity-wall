@@ -89,7 +89,7 @@ $("facts").innerHTML = factRows.map(([k, v]) => `<div><dt>${k}</dt><dd>${v}</dd>
   const parts = [];
   if (distressed) parts.push(`<p class="note-c">This loan is already in distress (${escapeHTML(r.status)}), so the models, which score loans that are still performing, don't apply. The underwriting below still sizes a refinance and a bid.</p>`);
   const probs = [];
-  if (r.pf !== null && r.pf !== undefined) probs.push(`<div class="prob"><span class="label">Failure to refinance at maturity</span><br><span class="v">${pct(r.pf, 0)}</span>
+  if (r.pf !== null && r.pf !== undefined) probs.push(`<div class="prob"><span class="label">Maturity model: failure at maturity</span><br><span class="v">${pct(r.pf, 0)}</span>
     <span class="iv">90% interval ${pct(r.pf_lo, 0)} to ${pct(r.pf_hi, 0)}</span>${iv(r.pf, r.pf_lo, r.pf_hi)}
     <ul class="drivers">${drv(rec.drivers_maturity, "failure")}</ul></div>`);
   if (r.pd !== null && r.pd !== undefined) probs.push(`<div class="prob"><span class="label">Distress in the next 12 months</span><br><span class="v">${pct(r.pd)}</span>
@@ -139,7 +139,7 @@ function drawUW() {
     <tr><th scope="row">Value bid (after lease-up, reserves, closing)</th><td class="r">${money(u.value_bid)}</td></tr>
     <tr><th scope="row">Return bid (levered IRR = ${pct(u.hurdle ?? (P.par.hurdle_levered_irr.all / 100), 0)})</th><td class="r">${u.return_bid === undefined || Number.isNaN(u.return_bid) ? "n/a (tier C)" : money(u.return_bid)}</td></tr>
     <tr class="binding"><th scope="row">Implied bid</th><td class="r">${money(u.bid)}</td></tr>
-    <tr><th scope="row">Discount to the loan balance</th><td class="r">${u.refinanceable_by_sale ? "None: refinanceable by sale" : pct(u.discount, 0)}</td></tr></tbody></table></div>`;
+    <tr><th scope="row">Discount to the loan balance</th><td class="r">${u.refinanceable_by_sale ? "None: a sale at the bid would cover the loan" : pct(u.discount, 0)}</td></tr></tbody></table></div>`;
   let returns = "";
   if (u.flows) {
     const fl = u.flows;

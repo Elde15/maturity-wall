@@ -10,7 +10,7 @@ tier,other,C,tier,docs/SOP.md section 12,as specified,2026-11-16,direct capitali
 noi_growth,office,1.0,pct_per_year,underwriting_sources.csv:147;148,judgment below the printed range,2026-11-16,national office rent growth prints at 1.9% (NAR/CoStar current) and 2.7% (CBRE 2026 forecast); CBRE says the highest-quality space drives its number and distressed office is mostly non-prime
 noi_growth,retail,1.7,pct_per_year,underwriting_sources.csv:152,as printed,2026-11-16,CBRE five-year nominal rent CAGR (2026-2031)
 noi_growth,industrial,1.8,pct_per_year,underwriting_sources.csv:157,as printed,2026-11-16,CBRE 2026 asking-rent growth forecast
-noi_growth,multifamily,2.0,pct_per_year,underwriting_sources.csv:165,as printed,2026-11-16,Yardi 2027 forecast via NAR; the first growth year uses the metro's Zillow multifamily rent index change where available (SOP 12 template)
+noi_growth,multifamily,2.0,pct_per_year,underwriting_sources.csv:165,as printed,2026-11-16,Yardi 2027 forecast via NAR; the first growth year uses the metro's Zillow multifamily rent index change where available
 noi_growth,self_storage,1.25,pct_per_year,underwriting_sources.csv:167;168,midpoint of the two guidance midpoints,2026-11-16,Extra Space 2.0-2.5% and Public Storage 0.0-0.5% same-store revenue guidance for 2026: (2.25 + 0.25) / 2
 noi_haircut_downside,office,12.95,pct_of_noi,underwriting_sources.csv:209;210;211;212,median,2026-11-16,KBRA sustainable NCF below issuer NCF on four 2026 office SASB deals (7.3; 12.9; 13.0; 16.3)
 noi_haircut_downside,retail,9.1,pct_of_noi,underwriting_sources.csv:213,as printed,2026-11-16,one retail-heavy SASB deal

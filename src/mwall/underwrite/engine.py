@@ -169,8 +169,9 @@ def clip_spread(raw: float, lo: float, hi: float) -> float:
 
 
 def seller_tax(tau: float, val_sec: float, val_sec_date: date, valuation: date, growth: float) -> float:
-    """Estimated current property tax under Proposition 13: the securitization appraisal as the assessed value,
-    grown at the 2% cap since then (the actual assessed value isn't in the filings)."""
+    """Tax on the seller's factored base year value under Proposition 13: the securitization appraisal as the base,
+    grown at the 2% cap since then (the actual assessed value isn't in the filings). The engine caps it at the tax on
+    today's value (Proposition 8)."""
     yrs = (valuation - val_sec_date).days / 365.25
     return tau * val_sec * (1 + growth) ** max(yrs, 0)
 
@@ -288,13 +289,17 @@ def underwrite(L: dict, S: dict, P: dict, M: dict, rate_shift_bps: float | None 
     c = max(c, par(P, "cap_rate_floor", "all") / 100) if not math.isnan(c) else c
     out.update(noi_stressed=noi_s, cap_rate=c, cap_method="relative value" if not math.isnan(spread) else
                "benchmark only", bench_kind=L["bench_kind"])
-    tau, tcur = _num(L["tax_rate"]), _num(L["tax_current"])
-    prop13 = not math.isnan(tau) and not math.isnan(tcur)
+    tau, tbase = _num(L["tax_rate"]), _num(L["tax_current"])
+    prop13 = not math.isnan(tau) and not math.isnan(tbase)
     if tier is None or math.isnan(c):
         if noi0 <= 0 and not math.isnan(B):  # no lender sizes a loan on zero or negative income
             out.update(p_max=0.0, refi_gap=B, refi_gap_pct=1.0)
         return out
+    # Proposition 8 (D064): the seller is taxed on the lower of the factored base year value and today's value, so the
+    # seller's tax is capped at the tax on NOI / c; value then solves V c = NOI + T_seller - tau V
+    tcur = min(tbase, tau * noi_s / c) if prop13 else float("nan")
     V = (noi_s + tcur) / (c + tau) if prop13 else noi_s / c
+    out["seller_tax"] = tcur
     out["value"] = V
 
     # ---- step A: refinance gap under the scenario's lender set

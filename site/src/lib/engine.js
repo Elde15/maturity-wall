@@ -118,14 +118,17 @@ export function underwrite(L, S, P, M, opts = {}) {
   if (isNum(c)) c = Math.max(c, par(P, "cap_rate_floor", "all") / 100);
   Object.assign(out, { noi_stressed: noiS, cap_rate: c, cap_method: isNum(spread) ? "relative value" : "benchmark only",
     bench_kind: L.bench_kind });
-  const tau = num(L.tax_rate), tcur = num(L.tax_current);
-  const prop13 = isNum(tau) && isNum(tcur);
+  const tau = num(L.tax_rate), tbase = num(L.tax_current);
+  const prop13 = isNum(tau) && isNum(tbase);
   if (tier === null || tier === undefined || !isNum(c)) {
     if (noi0 <= 0 && isNum(B)) Object.assign(out, { p_max: 0, refi_gap: B, refi_gap_pct: 1 });
     return out;
   }
+  // Proposition 8 (D064): the seller's tax is capped at the tax on today's value, NOI / c
+  const tcur = prop13 ? Math.min(tbase, (tau * noiS) / c) : NaN;
   const V = prop13 ? (noiS + tcur) / (c + tau) : noiS / c;
   out.value = V;
+  out.seller_tax = tcur;
 
   // ---- step A
   const lp = P.lender.get(`${S.refi_lender_set}|${g}`) || P.lender.get(`${S.refi_lender_set}|other`);

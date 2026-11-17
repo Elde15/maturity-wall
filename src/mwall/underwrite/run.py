@@ -33,6 +33,10 @@ def pct_rank(s: pd.Series) -> pd.Series:
 
 
 def opportunity(base: pd.DataFrame) -> pd.Series:
+    return (100 * components(base).mean(axis=1)).reindex(base.index)
+
+
+def components(base: pd.DataFrame) -> pd.DataFrame:
     """Rank-average of six transparent components (SOP 12), each a percentile in [0, 1]; 0 to 100.
 
     risk: 1 for a loan already in distress, else the percentile of its failure probability among loans that have
@@ -55,7 +59,7 @@ def opportunity(base: pd.DataFrame) -> pd.Series:
         "tier": x["tier"].map({"A": 1.0, "B": 0.5, "C": 0.0}),
         "size": pct_rank(x["wl_balance_est"]),
     })
-    return (100 * comp.mean(axis=1)).reindex(base.index)
+    return comp
 
 
 def run_scenarios(rows: list[dict], d: pd.DataFrame, P: dict, M: dict) -> pd.DataFrame:

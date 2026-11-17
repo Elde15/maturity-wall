@@ -168,8 +168,10 @@ def build_case(ws, L: dict, scen: str, P: dict, M: dict) -> None:
     sh.put("cap_rate", "=MAX({bench_today}+{spread}+{cap_shift},{param:cap_rate_floor}/100)")
     sh.put("noi_stressed", "={noi}*(1-{haircut})")
     sh.put("prop13", "=IF({tax_rate}>0,1,0)")
-    sh.put("tax_current", "=IF({prop13}=1,{tax_rate}*{val_sec}*(1+{la:prop13_growth}/100)^(({valuation}-{val_sec_date})"
-           "/365.25),0)", "seller's tax: appraisal grown 2% a year")
+    sh.put("tax_base", "=IF({prop13}=1,{tax_rate}*{val_sec}*(1+{la:prop13_growth}/100)^(({valuation}-{val_sec_date})"
+           "/365.25),0)", "tax on the factored base: appraisal grown 2% a year")
+    sh.put("tax_current", "=IF({prop13}=1,MIN({tax_base},{tax_rate}*{noi_stressed}/{cap_rate}),0)",
+           "seller's tax, capped at the tax on today's value (Proposition 8)")
     sh.put("value", "=IF({prop13}=1,({noi_stressed}+{tax_current})/({cap_rate}+{tax_rate}),{noi_stressed}/{cap_rate})")
 
     sh.head("Step A: refinance test")

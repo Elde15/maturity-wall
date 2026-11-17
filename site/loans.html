@@ -55,17 +55,17 @@
             <th scope="col" class="r" data-k="risk"><button class="sort" type="button">Probability</button></th>
             <th scope="col" class="r" data-k="gap_pct"><button class="sort" type="button">Gap</button></th>
             <th scope="col" class="r" data-k="disc"><button class="sort" type="button">Discount</button></th>
-            <th scope="col" class="r" data-k="opp" aria-sort="descending"><button class="sort" type="button">Score</button></th>
+            <th scope="col" class="r" data-k="opp" aria-sort="descending"><button class="sort" type="button">Priority</button></th>
           </tr></thead>
           <tbody></tbody>
         </table>
       </div>
       <p class="more-row"><button class="btn" type="button" id="more">Show 50 more</button></p>
       <dl class="defs small">
-        <dt>Probability</dt><dd>Failure-to-refinance probability for loans 2.5 to 24 months from maturity (marked F); otherwise the 12-month distress probability (marked D). Rankings are reliable; levels drift between years (<a href="/method.html#models">method</a>).</dd>
+        <dt>Probability</dt><dd>The maturity model's chance of failing to pay off at maturity, for loans 2.5 to 24 months from maturity (marked F); otherwise the 12-month distress probability (marked D). Rankings are reliable; levels drift between years (<a href="/method.html#models">method</a>).</dd>
         <dt>Gap</dt><dd>Refinance gap as a share of the balance: what the loan owes beyond the largest new loan a lender would make today.</dd>
         <dt>Discount</dt><dd>One minus the implied bid over the balance. Zero means the property could be sold for enough to repay the loan.</dd>
-        <dt>Score</dt><dd>Opportunity score, 0 to 100: the average percentile of risk, gap, discount, returns at market value, confidence tier and size (<a href="/method.html#underwriting">method</a>).</dd>
+        <dt>Priority</dt><dd>Review priority, 0 to 100: the average percentile of six ranks, each pointing toward a closer look: higher risk, a larger gap, a larger discount, a higher return at market value, a higher confidence tier and a larger balance. It orders loans for review; it isn't a recommendation (<a href="/method.html#priority">method</a>).</dd>
       </dl>
     </div>
   </main>

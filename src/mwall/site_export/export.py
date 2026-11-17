@@ -348,12 +348,22 @@ def model_charts(log=print) -> dict:
                             "precision": [round(float(v), 4) for v in pr[idx]]}
         curves["base_rate"] = float(y.mean())
         out["pr"][year] = curves
+        codes, uniq = pd.factorize(g["whole_loan_id"])
+        rng = np.random.default_rng(year)
         for col, name in ((mreport.FINAL, "model"), ("b1c_debt_yield", "debt yield rank"),
                           ("b1_dy_lt_10", "debt yield < 10%"), ("b2_dscr_lt_125", "DSCR < 1.25"),
                           ("b3_refi_gap", "refinance gap > 0"), ("b0_base_rate", "base rate")):
             if col in g:
                 sc = score(g["y_distress_12m"], g[col], g["wl_balance_est"])
-                out["metrics"].append({"year": year, "model": name, **{k: _clean(v) for k, v in sc.items()}})
+                row = {"year": year, "model": name, **{k: _clean(v) for k, v in sc.items()}}
+                if name in ("model", "debt yield rank"):   # 90% range on PR-AUC, resampling whole loans
+                    from sklearn.metrics import average_precision_score
+                    draws = []
+                    for _ in range(200):
+                        w = rng.multinomial(len(uniq), np.full(len(uniq), 1 / len(uniq)))[codes]
+                        draws.append(average_precision_score(y, g[col].to_numpy(), sample_weight=w))
+                    row["pr_auc_lo"], row["pr_auc_hi"] = (float(v) for v in np.percentile(draws, [5, 95]))
+                out["metrics"].append(row)
     log(f"model charts: {len(out['years'])} test years")
     return out
 
@@ -394,6 +404,13 @@ def summary(x: dict, L: pd.DataFrame, P: dict, log=print) -> dict:
         "distressed_now": {k: int(v) for k, v in L.loc[L["status"].isin(DISTRESSED), "status"].value_counts().items()},
         "with_failure_probability": int(L["pf"].notna().sum()),
     }
+    t = L.assign(chart_type=L["type"].replace({"mixed_use": "mixed_other", "other": "mixed_other"}).fillna("not reported"))
+    head["by_type_all"] = [{"type": k, "loans": int(len(g)), "balance": round(float(g["bal"].sum()))}
+                           for k, g in t.groupby("chart_type")]
+    valued = base[base["value"].notna()]
+    head["cap_benchmark_only"] = int(valued["cap_method"].eq("benchmark only").sum())
+    head["cap_composite"] = int(valued["bench_kind"].eq("composite").sum())
+    head["tiers"] = {k: int(v) for k, v in base["tier"].value_counts().items()}
     return {"headline": head, "wall": wall(x, L), "gap_by_type": gap_by_type(L), "scenario_gap": scenario_series(x),
             "discounts": discounts(L, hurdle), "model": model_charts(log), "maturity": maturity_findings()}
 
@@ -441,7 +458,11 @@ def sources_obj() -> dict:
             u = r.get("url") or ""
             if not u:
                 continue
-            t = r.get(title) or r.get("title") or r.get("source_title") or r.get("edition") or                 (f"CMBS delinquency report, {r['report_month']}" if r.get("report_month") else None) or                 (f"{r['rule'].replace('_', ' ')}, {r.get('jurisdiction', '')}" if r.get("rule") else None)
+            t = r.get(title) or r.get("title") or r.get("source_title") or r.get("edition")
+            if not t and r.get("report_month"):
+                t = f"CMBS delinquency report, data for {r['report_month']} (published {r.get('publication_date')})"
+            if not t and r.get("rule"):
+                t = f"{r['rule'].replace('_', ' ')}, {r.get('jurisdiction', '')}"
             d = by_url.setdefault(u, {"title": t,
                                       "publisher": r.get(pub) or r.get("publisher") or r.get("source"),
                                       "url": u, "date": r.get("publication_date"), "rows": 0})
