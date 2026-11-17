@@ -134,8 +134,9 @@ def write(out: pd.DataFrame, grid: pd.DataFrame, mono: pd.DataFrame, rows: list[
               f"({int((L['rent_cap'] < 0.05).sum()):,} under the City rent ordinance or the County's)."]
     la = base[base["jurisdiction"].eq("la_city")]
     if len(la):
-        lines += [f" Measure ULA at exit: {int((la['exit_cost_rate'] >= 0.0549).sum())} City of Los Angeles loans at "
-                  f"the 5.5% rate, {int(((la['exit_cost_rate'] > 0.039) & (la['exit_cost_rate'] < 0.0549)).sum())} at 4%."]
+        # exit cost = the 2% selling cost plus ULA (5.5% or 4%)
+        lines += [f" Measure ULA at exit: {int((la['exit_cost_rate'] >= 0.0749).sum())} City of Los Angeles loans at "
+                  f"the 5.5% rate, {int(((la['exit_cost_rate'] > 0.059) & (la['exit_cost_rate'] < 0.0749)).sum())} at 4%."]
     lines += [""]
 
     lines += ["## Opportunity score (base scenario, top 15)", "",

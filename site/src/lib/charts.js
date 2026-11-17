@@ -34,7 +34,7 @@ export function tableHTML({ columns, rows, caption }) {
   const head = columns.map((c) => `<th${c.r ? ' class="r"' : ""} scope="col">${c.label}</th>`).join("");
   const body = rows.map((r) => `<tr>${columns.map((c, i) =>
     `${i === 0 ? '<th scope="row"' : "<td"}${c.r ? ' class="r"' : ""}>${escapeHTML(c.f ? c.f(r[c.key], r) : r[c.key])}${i === 0 ? "</th>" : "</td>"}`).join("")}</tr>`).join("");
-  return `<div class="table-wrap"><table class="data">${caption ? `<caption>${caption}</caption>` : ""}<thead><tr>${head}</tr></thead><tbody>${body}</tbody></table></div>`;
+  return `<div class="table-wrap" tabindex="0" role="region" aria-label="${escapeHTML(columns.map((c) => c.label).filter(Boolean).slice(0, 3).join(", ") || "Table")}"><table class="data">${caption ? `<caption>${caption}</caption>` : ""}<thead><tr>${head}</tr></thead><tbody>${body}</tbody></table></div>`;
 }
 
 export function legendHTML(items) {
@@ -65,17 +65,12 @@ function tooltip(container) {
   };
 }
 
+// marks get a hover tooltip; keyboard and screen-reader users read the same numbers in the table view
 function bindTip(sel, tip, html, container) {
-  sel.attr("tabindex", 0)
-    .on("mousemove", (e, d) => {
-      const r = container.getBoundingClientRect();
-      tip.show(html(d), e.clientX - r.left, e.clientY - r.top);
-    })
-    .on("mouseleave blur", () => tip.hide())
-    .on("focus", function (e, d) {
-      const b = this.getBBox(), r = container.getBoundingClientRect(), s = this.ownerSVGElement.getBoundingClientRect();
-      tip.show(html(d), s.left - r.left + b.x + b.width / 2, s.top - r.top + b.y);
-    });
+  sel.on("mousemove", (e, d) => {
+    const r = container.getBoundingClientRect();
+    tip.show(html(d), e.clientX - r.left, e.clientY - r.top);
+  }).on("mouseleave", () => tip.hide());
 }
 
 function responsive(container, draw) {

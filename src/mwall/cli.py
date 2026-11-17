@@ -104,11 +104,14 @@ def cmd_model(args) -> None:
 def cmd_underwrite(args) -> None:
     from mwall.underwrite import run
 
-    if args.places:
-        from mwall.underwrite import inputs, places
+    from mwall.underwrite import inputs
 
-        inputs.build(log=_log)
+    inputs.build(log=_log)
+    if args.places:
+        from mwall.underwrite import places
+
         places.build(log=_log)
+        inputs.build(log=_log)
     if args.handcheck:
         from mwall.underwrite import handcheck
 
@@ -121,6 +124,17 @@ def cmd_site(args) -> None:
     from mwall.site_export import export
 
     export.main(log=_log)
+
+
+def cmd_la(args) -> None:
+    if args.select:
+        from mwall.site_export import la
+
+        la.write_selection(log=_log)
+    else:
+        from mwall.site_export import la_build
+
+        la_build.build(log=_log)
 
 
 def cmd_census(args) -> None:
@@ -227,6 +241,11 @@ def main(argv: list[str] | None = None) -> None:
 
     s = sub.add_parser("site", help="Gate 5: write the site's data files to site/public/data (SOP 14)")
     s.set_defaults(func=cmd_site)
+
+    s = sub.add_parser("la", help="Los Angeles case study (SOP 13): --select writes the rule and candidates; "
+                                  "otherwise builds la.json and docs/la/memo.md")
+    s.add_argument("--select", action="store_true")
+    s.set_defaults(func=cmd_la)
 
     s = sub.add_parser("loandetail", help="vintage-2016 10-D loan detail tables (D033 pilot): fetch and/or parse")
     s.add_argument("--fetch", action="store_true")

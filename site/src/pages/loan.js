@@ -128,11 +128,11 @@ function drawUW() {
   }
   const bind = Math.min(u.p_ltv, u.p_dscr, u.p_dy);
   const sizingRows = [["Loan to value", u.p_ltv], ["Debt service coverage", u.p_dscr], ["Debt yield", u.p_dy]];
-  const sizingHTML = `<div class="table-wrap"><table class="data"><thead><tr><th scope="col">Lender test</th><th scope="col" class="r">Largest new loan</th></tr></thead><tbody>
+  const sizingHTML = `<div class="table-wrap" tabindex="0" role="region" aria-label="Table"><table class="data"><thead><tr><th scope="col">Lender test</th><th scope="col" class="r">Largest new loan</th></tr></thead><tbody>
     ${sizingRows.map(([k, v]) => `<tr class="${v === bind ? "binding" : ""}"><th scope="row">${k}${v === bind ? " (binds)" : ""}</th><td class="r">${money(v)}</td></tr>`).join("")}
     <tr><th scope="row">Loan balance today</th><td class="r">${money(L.wl_balance_est)}</td></tr>
     <tr class="binding"><th scope="row">Refinance gap</th><td class="r">${money(u.refi_gap)}</td></tr></tbody></table></div>`;
-  const value = `<div class="table-wrap"><table class="data"><tbody>
+  const value = `<div class="table-wrap" tabindex="0" role="region" aria-label="Table"><table class="data"><tbody>
     <tr><th scope="row">Stressed NOI</th><td class="r">${dollars(u.noi_stressed)}</td></tr>
     <tr><th scope="row">Cap rate (${escapeHTML(u.cap_method)}, ${escapeHTML(L.bench_kind)} benchmark)</th><td class="r">${pct(u.cap_rate, 2)}</td></tr>
     <tr><th scope="row">Value</th><td class="r">${money(u.value)}</td></tr>
@@ -153,7 +153,7 @@ function drawUW() {
       ],
       caption: `Year 0 is the purchase (price plus closing costs${u.renovation_budget ? " and the renovation budget" : ""}, less the bridge loan); year 5 includes the sale at a ${pct(u.exit_cap, 2)} exit cap rate less ${pct(u.exit_cost_rate, 1)} selling costs and transfer taxes, and repays the loan.`,
     })}
-    <div class="table-wrap"><table class="data"><tbody>
+    <div class="table-wrap" tabindex="0" role="region" aria-label="Table"><table class="data"><tbody>
       <tr><th scope="row">Levered IRR / unlevered IRR</th><td class="r">${pct(u.irr_levered)} / ${pct(u.irr_unlevered)}</td></tr>
       <tr><th scope="row">Equity required / multiple</th><td class="r">${money(u.equity)} / ${u.equity_multiple.toFixed(2)}x</td></tr>
       <tr><th scope="row">Average cash-on-cash yield</th><td class="r">${pct(u.cash_on_cash)}</td></tr>
@@ -166,7 +166,7 @@ function drawUW() {
   // sensitivity: implied bid and refinance gap as rates and cap rates move
   const rates = [-100, 0, 100, 200], caps = [-100, -50, 0, 50, 100];
   const grid = rates.map((rs) => caps.map((cs) => underwrite(L, S, P, M, { rateShiftBps: S.rate_shift_bps + rs, capShiftBps: S.cap_shift_bps + cs })));
-  const gridTable = (key, label) => `<div class="table-wrap"><table class="data sens"><caption>${label}: rows shift the refinance and acquisition rates, columns shift cap rates, both from the ${S.label.toLowerCase()} scenario. The outlined cell is the scenario itself.</caption>
+  const gridTable = (key, label) => `<div class="table-wrap" tabindex="0" role="region" aria-label="Table"><table class="data sens"><caption>${label}: rows shift the refinance and acquisition rates, columns shift cap rates, both from the ${S.label.toLowerCase()} scenario. The outlined cell is the scenario itself.</caption>
     <thead><tr><th scope="col">Rate shift</th>${caps.map((c) => `<th scope="col" class="r">Cap ${c > 0 ? "+" : ""}${c} bp</th>`).join("")}</tr></thead><tbody>
     ${grid.map((row, i) => `<tr><th scope="row">${rates[i] > 0 ? "+" : ""}${rates[i]} bp</th>${row.map((g, j) => `<td class="r${rates[i] === 0 && caps[j] === 0 ? " cur" : ""}">${money(g[key])}</td>`).join("")}</tr>`).join("")}
     </tbody></table></div>`;

@@ -49,34 +49,34 @@ Why a loan has no tier or dropped a tier:
 
 | scenario | valued | refinance gap ($bn) | loans with a gap | loans with a return bid | bid below balance | median discount where below |
 | --- | --- | --- | --- | --- | --- | --- |
-| base | 9848 | 49.3 | 4639 | 7290 | 1941 | 21.8% |
-| downside | 9848 | 86.5 | 7644 | 7285 | 3572 | 18.3% |
-| value_add | 9848 | 49.3 | 4639 | 7294 | 1835 | 22.3% |
+| base | 9848 | 46.7 | 4561 | 7290 | 1794 | 18.6% |
+| downside | 9848 | 84.2 | 7609 | 7286 | 3460 | 17.1% |
+| value_add | 9848 | 46.7 | 4561 | 7294 | 1684 | 19.0% |
 
 ### Base scenario by property type
 
 | type | loans valued | balance ($bn) | with a gap | gap ($bn) | median cap rate | return bid / value bid (median) | bid below balance |
 | --- | --- | --- | --- | --- | --- | --- | --- |
-| office | 1661 | 96.89 | 1067 | 25.41 | 8.4% | 0.75 | 809 |
-| retail | 2603 | 64.26 | 1026 | 4.86 | 7.0% | 0.81 | 304 |
-| industrial | 666 | 20.08 | 219 | 1.98 | 6.4% | 0.81 | 72 |
-| multifamily | 1953 | 45.92 | 1023 | 6.50 | 5.7% | 0.80 | 390 |
-| self_storage | 976 | 11.62 | 381 | 0.74 | 6.5% | 0.79 | 96 |
-| lodging | 1139 | 36.73 | 445 | 3.65 | 9.1% |  | 170 |
-| mixed_use | 756 | 32.45 | 425 | 5.69 | 6.5% |  | 95 |
+| office | 1661 | 96.89 | 1053 | 24.77 | 8.4% | 0.75 | 784 |
+| retail | 2603 | 64.26 | 1003 | 4.38 | 7.0% | 0.81 | 262 |
+| industrial | 666 | 20.08 | 207 | 1.69 | 6.4% | 0.81 | 54 |
+| multifamily | 1953 | 45.92 | 1010 | 5.98 | 5.7% | 0.80 | 363 |
+| self_storage | 976 | 11.62 | 380 | 0.73 | 6.5% | 0.79 | 94 |
+| lodging | 1139 | 36.73 | 439 | 3.43 | 9.1% |  | 159 |
+| mixed_use | 756 | 32.45 | 416 | 5.27 | 6.5% |  | 73 |
 | other | 94 | 3.20 | 53 | 0.46 | 6.1% |  | 5 |
 
 ### Downside scenario by property type
 
 | type | loans valued | balance ($bn) | with a gap | gap ($bn) | median cap rate | return bid / value bid (median) | bid below balance |
 | --- | --- | --- | --- | --- | --- | --- | --- |
-| office | 1661 | 96.89 | 1382 | 36.07 | 8.9% | 0.73 | 1193 |
-| retail | 2603 | 64.26 | 2045 | 13.50 | 7.5% | 0.81 | 769 |
-| industrial | 666 | 20.08 | 496 | 4.45 | 6.9% | 0.81 | 171 |
-| multifamily | 1953 | 45.92 | 1537 | 11.73 | 6.2% | 0.80 | 704 |
-| self_storage | 976 | 11.62 | 700 | 2.15 | 7.0% | 0.79 | 276 |
-| lodging | 1139 | 36.73 | 779 | 6.44 | 9.6% |  | 274 |
-| mixed_use | 756 | 32.45 | 630 | 11.32 | 7.0% |  | 170 |
+| office | 1661 | 96.89 | 1371 | 35.47 | 8.9% | 0.73 | 1175 |
+| retail | 2603 | 64.26 | 2039 | 13.08 | 7.5% | 0.81 | 734 |
+| industrial | 666 | 20.08 | 494 | 4.20 | 6.9% | 0.81 | 157 |
+| multifamily | 1953 | 45.92 | 1531 | 11.30 | 6.2% | 0.80 | 687 |
+| self_storage | 976 | 11.62 | 700 | 2.14 | 7.0% | 0.79 | 275 |
+| lodging | 1139 | 36.73 | 774 | 6.23 | 9.6% |  | 267 |
+| mixed_use | 756 | 32.45 | 625 | 10.90 | 7.0% |  | 150 |
 | other | 94 | 3.20 | 75 | 0.86 | 6.6% |  | 15 |
 
 At the 20% levered hurdle the return bid is below the value bid for 100.0% of loans with a cash-flow model; a buyer paying market value would not reach the hurdle. Paying the value bid, the median unlevered IRR is 6.1% and the median levered IRR 2.2%: bridge debt at the 5-year Treasury plus 300 to 425 bp costs more than the property yields, so leverage lowers the return (negative leverage).
@@ -87,12 +87,12 @@ Total refinance gap, $bn, as the refinance rate and cap rates move (rows: rate s
 
 | rate shift | cap -100 | cap -50 | cap +0 | cap +50 | cap +100 |
 | --- | --- | --- | --- | --- | --- |
-| -100 | 44.1 | 44.3 | 44.8 | 46.0 | 48.4 |
-| -50 | 46.1 | 46.2 | 46.6 | 47.6 | 49.7 |
-| 0 | 49.0 | 49.0 | 49.3 | 50.1 | 51.9 |
-| 50 | 52.3 | 52.4 | 52.5 | 53.0 | 54.5 |
-| 100 | 55.8 | 55.8 | 56.0 | 56.3 | 57.4 |
-| 200 | 65.0 | 65.0 | 65.0 | 65.2 | 65.6 |
+| -100 | 41.5 | 41.6 | 42.2 | 43.4 | 45.8 |
+| -50 | 43.5 | 43.5 | 44.0 | 45.0 | 47.1 |
+| 0 | 46.4 | 46.4 | 46.7 | 47.5 | 49.3 |
+| 50 | 49.7 | 49.8 | 50.0 | 50.4 | 51.9 |
+| 100 | 53.2 | 53.3 | 53.4 | 53.7 | 54.9 |
+| 200 | 62.5 | 62.5 | 62.6 | 62.7 | 63.2 |
 
 Median return bid as a share of the base return bid:
 
@@ -109,12 +109,12 @@ Direction checks on every loan and every step of the grid (SOP 15: higher rates 
 
 | output | as | expected | steps | moved_the_wrong_way | held_flat | loans_with_a_wrong_step |
 | --- | --- | --- | --- | --- | --- | --- |
-| refi_gap | rate rises | rises or holds | 242900 | 0 | 149168 | 0 |
-| return_bid | rate rises | falls or holds | 182240 | 0 | 0 | 0 |
+| refi_gap | rate rises | rises or holds | 242900 | 0 | 150311 | 0 |
+| return_bid | rate rises | falls or holds | 182250 | 0 | 0 | 0 |
 | value | cap rises | falls or holds | 236352 | 0 | 162 | 0 |
 | value_bid | cap rises | falls or holds | 236352 | 0 | 162 | 0 |
-| return_bid | cap rises | falls or holds | 174936 | 0 | 162 | 0 |
-| refi_gap | cap rises | rises or holds | 233184 | 0 | 212729 | 0 |
+| return_bid | cap rises | falls or holds | 174948 | 0 | 162 | 0 |
+| refi_gap | cap rises | rises or holds | 233184 | 0 | 213123 | 0 |
 
 A step that holds flat is a loan the constraint doesn't touch: a gap of zero that stays zero, or a cap rate held at the 3.5% floor when cap rates fall 100 bp.
 
@@ -124,7 +124,7 @@ A step that holds flat is a loan the constraint doesn't touch: a gap of zero tha
 | --- | --- |
 | zero or missing NOI | 1,534 loans with no NOI and 539 with NOI over 36 months old are not underwritten (no value, no bid); their refinance gap is left blank |
 | negative NOI | 115 loans: no value or bid; the refinance gap is the whole balance because no lender sizes a loan on negative income |
-| bid above balance | 7,666 loans are flagged refinanceable by sale and shown with no discount |
+| bid above balance | 7,813 loans are flagged refinanceable by sale and shown with no discount |
 | multi-property loans | 1,889 loans: valued on the pooled NOI; listed tenants (which describe only the largest property) and local tax and rent rules are not applied; rollover uses the even-turnover assumption on the whole area |
 | partial-year financials | annualized at cleaning (D021); 616 loans annualized from under six months drop one tier |
 | lease-up larger than value | 3 loans have a value bid at or below zero and a bid of zero |
@@ -145,7 +145,7 @@ A step that holds flat is a loan the constraint doesn't touch: a gap of zero tha
 | culver_city | 8 |
 
 Proposition 13 tax reset applied to 604 loans; rent caps on 56 multifamily loans (23 under the City rent ordinance or the County's).
- Measure ULA at exit: 133 City of Los Angeles loans at the 5.5% rate, 0 at 4%.
+ Measure ULA at exit: 134 City of Los Angeles loans at the 5.5% rate, 0 at 4%.
 
 ## Opportunity score (base scenario, top 15)
 
@@ -153,21 +153,21 @@ Rank-average of failure or distress probability, refinance gap, implied discount
 
 | whole_loan_id | property_group | status | balance ($m) | gap | discount | tier | score |
 | --- | --- | --- | --- | --- | --- | --- | --- |
-| WL18a7ad15f02c | multifamily | special servicing | 33.0 | 51.5% | 46.2% | A | 91.6 |
-| WLaa2f80473b49 | multifamily | delinquent 30+ | 60.0 | 36.7% | 30.3% | A | 91.3 |
-| WLb69be9276aeb | multifamily | performing | 304.4 | 38.1% | 11.6% | A | 90.9 |
-| WL5a3a70be0172 | multifamily | special servicing | 17.8 | 31.6% | 22.9% | A | 89.7 |
-| WLbd184c5ab0f8 | multifamily | performing | 44.0 | 23.5% | 11.2% | A | 89.7 |
-| WL6d89bd434891 | multifamily | special servicing | 53.8 | 23.6% | 14.7% | A | 89.6 |
-| WL0a05610876b5 | industrial | performing | 30.7 | 39.8% | 31.0% | A | 89.5 |
-| WLa6d5ffb819f8 | multifamily | special servicing | 42.3 | 37.3% | 18.9% | A | 89.3 |
-| WL406d0b9e01b1 | multifamily | performing | 17.7 | 49.8% | 44.7% | A | 89.0 |
-| WL331c5de2e4a6 | multifamily | performing | 58.4 | 48.7% | 40.8% | A | 88.8 |
-| WLf291692a040b | industrial | special servicing | 12.0 | 85.1% | 83.8% | A | 88.5 |
-| WL7501e059e3a4 | multifamily | performing | 44.0 | 19.9% | 1.5% | A | 88.5 |
-| WL0d71f9b83d3b | multifamily | special servicing | 31.0 | 22.6% | 3.2% | A | 88.2 |
-| WL594dce81a8d4 | multifamily | special servicing | 16.3 | 45.5% | 40.4% | A | 87.3 |
-| WL5bbc1f5145ff | multifamily | performing | 29.3 | 29.4% | 14.3% | A | 87.2 |
+| WL18a7ad15f02c | multifamily | special servicing | 33.0 | 51.5% | 46.2% | A | 92.2 |
+| WLaa2f80473b49 | multifamily | delinquent 30+ | 60.0 | 36.7% | 30.3% | A | 91.9 |
+| WLb69be9276aeb | multifamily | performing | 304.4 | 38.1% | 11.6% | A | 91.4 |
+| WL5a3a70be0172 | multifamily | special servicing | 17.8 | 31.6% | 22.9% | A | 90.2 |
+| WLbd184c5ab0f8 | multifamily | performing | 44.0 | 23.5% | 11.2% | A | 90.1 |
+| WL0a05610876b5 | industrial | performing | 30.7 | 39.8% | 31.0% | A | 90.1 |
+| WL6d89bd434891 | multifamily | special servicing | 53.8 | 23.6% | 14.7% | A | 90.0 |
+| WLa6d5ffb819f8 | multifamily | special servicing | 42.3 | 37.3% | 18.9% | A | 89.8 |
+| WL406d0b9e01b1 | multifamily | performing | 17.7 | 49.8% | 44.7% | A | 89.6 |
+| WL331c5de2e4a6 | multifamily | performing | 58.4 | 48.7% | 40.8% | A | 89.4 |
+| WL7501e059e3a4 | multifamily | performing | 44.0 | 19.9% | 1.5% | A | 88.9 |
+| WL0d71f9b83d3b | multifamily | special servicing | 31.0 | 22.6% | 3.2% | A | 88.7 |
+| WLf291692a040b | industrial | special servicing | 12.0 | 85.1% | 83.8% | A | 88.6 |
+| WL594dce81a8d4 | multifamily | special servicing | 16.3 | 45.5% | 40.4% | A | 87.9 |
+| WL5bbc1f5145ff | multifamily | performing | 29.3 | 29.4% | 14.3% | A | 87.7 |
 
 ## Hand check
 

@@ -100,7 +100,7 @@ $("scen-table").innerHTML = `<h3>Scenarios</h3>${tableHTML({
   };
   const cite = (srcs) => srcs.map((c) => (c.url ? `<a href="${escapeHTML(c.url)}">${escapeHTML(c.publisher || c.row)}${c.date ? `, ${escapeHTML(c.date)}` : ""}</a>`
     : escapeHTML(c.row))).join("; ");
-  $("params").innerHTML = `<div class="table-wrap"><table class="data params"><thead><tr><th scope="col">Parameter</th><th scope="col">Applies to</th>
+  $("params").innerHTML = `<div class="table-wrap" tabindex="0" role="region" aria-label="Table"><table class="data params"><thead><tr><th scope="col">Parameter</th><th scope="col">Applies to</th>
     <th scope="col" class="r">Value</th><th scope="col">How chosen and source</th></tr></thead><tbody>${rows.map((p) => `<tr>
     <th scope="row">${escapeHTML(((p.file === "la_overrides.csv" ? `${p.rule} ` : "") + p.parameter).replace(/_/g, " "))}</th><td>${appliesTo(p)}</td>
     <td class="r v">${escapeHTML(p.value)} <span class="s">${escapeHTML((p.unit || "").replace(/_/g, " "))}</span></td>

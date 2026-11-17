@@ -83,6 +83,36 @@ def earlier_noi(d: pd.DataFrame) -> pd.DataFrame:
         group by 1""").df()
 
 
+def quarter_fix(d: pd.DataFrame, log=print) -> pd.DataFrame:
+    """D059: three-month financials that the servicer vote (D021) marked as already annualized are, for most loans,
+    a quarter's figures (median 0.25 of the loan's earlier NOI). Each such loan takes whichever reading, as filed or
+    times four, sits closer (in log terms) to its latest earlier NOI from a period of six months or more; without
+    one, to its NOI at securitization; without either, the quarter reading (times four)."""
+    q = d["fin_months"].eq(3) & d["fin_basis"].eq("annualized") & d["noi"].gt(0)
+    d["noi_quarter_fix"] = False
+    if not q.any():
+        return d
+    lp = (paths.PARSED_DIR / "loan_period" / "*.parquet").as_posix()
+    con = duckdb.connect()
+    con.register("k", d.loc[q, ["root_key", "period_end"]])
+    prev = con.execute(f"""
+        select k.root_key, arg_max(p.fin_noi_annual, p.period_end) prev_noi
+        from k join read_parquet('{lp}', union_by_name=true) p on p.root_key = k.root_key
+        where p.period_end < k.period_end - interval 100 day and p.fin_noi_annual > 0 and p.fin_months >= 6
+        group by 1""").df().set_index("root_key")["prev_noi"]
+    anchor = d.loc[q, "root_key"].map(prev)
+    anchor = anchor.where(anchor.notna(), d.loc[q, "noi_sec"].where(d.loc[q, "noi_sec"] > 0))
+    as_filed = np.abs(np.log(d.loc[q, "noi"] / anchor))
+    times4 = np.abs(np.log(4 * d.loc[q, "noi"] / anchor))
+    use4 = anchor.isna() | (times4 < as_filed)
+    idx = use4[use4].index
+    for c in ("noi", "revenue", "opex", "ncf"):
+        d.loc[idx, c] = d.loc[idx, c] * 4
+    d.loc[idx, "noi_quarter_fix"] = True
+    log(f"quarter NOI read as annual (D059): {int(q.sum())} loans checked, {len(idx)} re-annualized")
+    return d
+
+
 def feature_fields(keys: pd.DataFrame) -> pd.DataFrame:
     f = (paths.PANEL_DIR / "features.parquet").as_posix()
     con = duckdb.connect()
@@ -142,6 +172,7 @@ def build(D: pd.Timestamp | None = None, log=print) -> pd.DataFrame:
     d.loc[fill, "noi_age_months"] = ((d.loc[fill, "snapshot_date"] - pd.to_datetime(d.loc[fill, "fin_end"]))
                                      .dt.days / 30.4375).to_numpy()
     log(f"NOI from an earlier filing: {int(fill.sum()):,} loans")
+    d = quarter_fix(d, log)
     d = d.merge(feature_fields(s), on=["root_key", "accession"], how="left")
     geo = pd.read_parquet(paths.PARSED_DIR / "geography.parquet", columns=["addr_key", "lat", "lon"])
     d["addr_key"] = [addr_key(*r) for r in d[["prop_address", "prop_city", "prop_state_filed", "prop_zip"]]

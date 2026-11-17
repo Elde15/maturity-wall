@@ -116,3 +116,70 @@ def write_selection(log=print) -> None:
     (DOCS / "selection.md").write_text(RULE.format(date=dt.date.today().isoformat(), cutoff=meta["data_cutoff"],
                                                    result="\n".join(lines)), encoding="utf-8")
     log(f"LA selection: {len(picks)} picks from {len(m)} market loans -> docs/la/")
+
+
+# ====================================================================== case study build (after the selection commit)
+
+import json  # noqa: E402
+import re  # noqa: E402
+
+from mwall.underwrite import engine  # noqa: E402
+
+MARKET_SRC = paths.CONFIG_DIR / "research" / "la_market_sources.csv"
+
+
+def _m(v: float) -> str:
+    return f"${v / 1e9:,.1f}B" if abs(v) >= 1e9 else f"${v / 1e6:,.1f}M"
+
+
+def _p(v: float, d: int = 1) -> str:
+    return "n/a" if v is None or pd.isna(v) else f"{100 * v:.{d}f}%"
+
+
+def picks() -> list[tuple[str, str]]:
+    """The committed picks, read back from docs/la/selection.md so the page can't drift from the record."""
+    text = (DOCS / "selection.md").read_text(encoding="utf-8")
+    return [(m.group(1), m.group(2)) for m in re.finditer(r"^- (\d\. [^:]+): .*?`(WL[0-9a-f]+)`", text, re.M)]
+
+
+class Local:
+    """Cited figures from config/research/la_market_sources.csv, addressed by their keys; publisher matches by prefix."""
+
+    def __init__(self):
+        self.t = pd.read_csv(MARKET_SRC)
+
+    def get(self, metric, ptype, geo, period, publisher) -> dict:
+        t = self.t
+        r = t[(t["metric"] == metric) & (t["property_type"] == ptype) & (t["geography"] == geo) & (t["period"] == period)
+              & t["source_publisher"].str.startswith(publisher)]
+        if not len(r):
+            raise KeyError((metric, ptype, geo, period, publisher))
+        i, row = r.index[0], r.iloc[0]
+        return {"value": float(row["value"]), "unit": row["unit"], "publisher": row["source_publisher"],
+                "date": row["publication_date"], "url": row["url"], "row": int(i) + 1, "metric": metric, "geo": geo,
+                "period": period, "type": ptype}
+
+
+def local_context(lc: Local) -> list[dict]:
+    q, LA, OC = "2026Q3", "Los Angeles County", "Orange County"
+    g = lc.get
+    rows = [
+        ("Office vacancy, Los Angeles County", "%", [g("overall_vacancy_rate", "office", LA, q, "CBRE"),
+            g("overall_vacancy_rate", "office", LA, q, "Cushman"), g("direct_vacancy_rate", "office", LA, q, "Kidder")]),
+        ("Office asking rent, Los Angeles County", "$/sf/month, full service", [g("avg_asking_rent", "office", LA, q, "CBRE"),
+            g("avg_asking_rent", "office", LA, q, "Cushman"), g("avg_asking_rent", "office", LA, q, "Kidder")]),
+        ("Office vacancy, Orange County", "%", [g("overall_vacancy_rate", "office", OC, q, "CBRE"),
+            g("overall_vacancy_rate", "office", OC, q, "Cushman")]),
+        ("Industrial vacancy, Los Angeles County", "%", [g("overall_vacancy_rate", "industrial", LA, q, "CBRE"),
+            g("overall_vacancy_rate", "industrial", LA, q, "Cushman"), g("direct_vacancy_rate", "industrial", LA, q, "Kidder")]),
+        ("Multifamily vacancy, Los Angeles County", "%", [g("vacancy_rate", "multifamily", LA, q, "Kidder")]),
+        ("Multifamily occupancy, Los Angeles County (market-rate, 5+ units)", "%", [g("occupancy_rate", "multifamily", LA, q, "CBRE")]),
+        ("Multifamily asking rent change, Los Angeles County, year over year", "%", [g("avg_asking_rent_change_yoy", "multifamily", LA, q, "Kidder")]),
+        ("Retail availability, Los Angeles County", "%", [g("availability_rate", "retail", LA, q, "CBRE"),
+            g("vacancy_rate", "retail", LA, q, "Kidder")]),
+        ("Hotel RevPAR, Los Angeles market, Q3", "$", [g("revpar", "lodging", "Los Angeles County (STR Los Angeles, CA market)", q, "Cushman")]),
+        ("Housing units authorized in 5+ unit buildings, Los Angeles County, January to September", "units",
+            [g("housing_units_authorized_5plus", "new_supply", LA, "2026 Jan-Sep", "U.S. Census"),
+             g("housing_units_authorized_5plus", "new_supply", LA, "2025 Jan-Sep", "U.S. Census")]),
+    ]
+    return [{"label": label, "unit": unit, "cites": cites} for label, unit, cites in rows]

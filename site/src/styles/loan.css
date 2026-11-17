@@ -33,3 +33,8 @@
 .sens td.cur { outline: 2px solid var(--ink); outline-offset: -2px; font-weight: 700; }
 .note-c { margin-top: var(--sp-3); padding: var(--sp-3) var(--sp-4); border-left: 3px solid var(--wall); background: var(--paper-2); font-size: var(--s-14); max-width: 80ch; }
 details.filings summary { cursor: pointer; font-weight: 600; color: var(--water-ink); min-height: 44px; display: flex; align-items: center; }
+/* reserve the header's space so the page doesn't jump when the loan's data arrives */
+#t-where { min-height: 1.6em; }
+#t-chips { min-height: 28px; }
+#t-stats { min-height: 124px; }
+@media (max-width: 760px) { #t-stats { min-height: 250px; } }

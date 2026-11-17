@@ -2,7 +2,7 @@ import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { defineConfig } from "vite";
 
-const PAGES = ["index", "wall", "loans", "loan", "lab", "los-angeles", "method", "data"];
+const PAGES = ["index", "wall", "loans", "loan", "lab", "los-angeles", "method", "data", "404"];
 const NAV = [
   ["wall", "The wall"], ["loans", "Loans"], ["lab", "Scenario lab"], ["los-angeles", "Los Angeles"],
   ["method", "Method"], ["data", "Data and code"],

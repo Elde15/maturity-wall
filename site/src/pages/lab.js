@@ -69,13 +69,33 @@ const delta = (now, base, f, worse = 1) => {
   if (!dv || Number.isNaN(dv)) return '<span class="d">no change from the starting scenario</span>';
   return `<span class="d ${dv * worse > 0 ? "up" : "down"}">${dv > 0 ? "+" : "-"}${f(Math.abs(dv))} vs the starting scenario</span>`;
 };
-function runSegment() {
+// the work runs in batches that yield to the browser, so a phone stays responsive; a newer run cancels an older one
+let runId = 0;
+const BATCH = 200;
+async function mapChunked(list, fn, id) {
+  const out = new Array(list.length);
+  for (let i = 0; i < list.length; i += BATCH) {
+    for (let j = i; j < Math.min(i + BATCH, list.length); j++) out[j] = fn(list[j]);
+    await new Promise((r) => setTimeout(r, 0));
+    if (id !== runId) return null;
+  }
+  return out;
+}
+const atStart = () => {
+  const S = S0();
+  return +sl.tsy.value === S.rate_shift_bps && +sl.spr.value === 0 && +sl.cap.value === S.cap_shift_bps
+    && +sl.hc.value === 0 && +sl.hur.value === Math.round(P0.par[S.hurdle_param].all);
+};
+async function runSegment() {
+  const id = ++runId;
   const t0 = performance.now();
   const ty = $("seg-type").value, st = $("seg-state").value;
   const seg = U.filter((u) => (!ty || u.group === ty) && (!st || u._row.state === st));
   const { S, P, M, hurdle } = setup();
-  const now = seg.map((u) => underwrite(u, S, P, M, { hurdle }));
-  const base = seg.map(baseOf);
+  const base = await mapChunked(seg, baseOf, id);
+  if (!base) return;
+  const now = atStart() ? base : await mapChunked(seg, (u) => underwrite(u, S, P, M, { hurdle }), id);
+  if (!now) return;
   const a = agg(now), b = agg(base);
   $("seg-stats").innerHTML = [
     [money(a.gap), "refinance gap", delta(a.gap, b.gap, money)],

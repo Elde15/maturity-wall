@@ -40,7 +40,7 @@
       <section class="section" aria-labelledby="h-code"><div class="rail"><span class="idx">03</span><span class="label">Code</span></div>
         <div class="body prose"><h2 id="h-code">Rebuild it</h2>
           <p>The repository is <a href="https://github.com/Elde15/maturity-wall">github.com/Elde15/maturity-wall</a>. It holds the pipeline (Python), the site (Vite and plain JavaScript), the project plan, a decision log with every departure from it, and the QA report for each of the six gates. Raw filings are not in the repository; the pipeline downloads them from EDGAR.</p>
-          <pre class="code"><code>uv sync --extra model
+          <pre class="code" tabindex="0" aria-label="Commands to rebuild the project"><code>uv sync --extra model
 uv run pytest                      # unit, golden-file, engine and site tests
 uv run python -m mwall fixture     # two trusts, three snapshots: rebuild and compare with stored outputs
 
