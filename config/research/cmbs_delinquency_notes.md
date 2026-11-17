@@ -1,6 +1,6 @@
 # CMBS delinquency and distress rates: sources, definitions, gaps
 
-Companion to `cmbs_delinquency_sources.csv` (same folder). 1,494 rows, accessed 2026-11-16. Every number was read from a page fetched in this session. Raw pages are saved in the session scratchpad at `research_raw\delinquency\` (506 `.html` pages, 32 CRED iQ PDFs, and a `.txt` companion for each). The `quote` column matches the `.txt` companion verbatim, and the `notes` column names that file ("saved as ..."). A check script confirmed all 1,494 quotes are present in their saved file and that each `rate_pct` appears in its quote.
+Companion to `cmbs_delinquency_sources.csv` (same folder). 1,494 rows, accessed 2026-11-16. Every number was read from a page fetched that day. Raw pages are archived under `data/meta/research_raw/delinquency/` (git-ignored) (506 `.html` pages, 32 CRED iQ PDFs, and a `.txt` companion for each). The `quote` column matches the `.txt` companion verbatim, and the `notes` column names that file ("saved as ..."). A check script confirmed all 1,494 quotes are present in their saved file and that each `rate_pct` appears in its quote.
 
 ## What was collected
 

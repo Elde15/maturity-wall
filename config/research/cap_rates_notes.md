@@ -34,7 +34,7 @@ Dates are when the numbers became public, as best I could verify. "Adv." is CBRE
 | H2 2025 | 2026-02-10 | All-property; LA Class A ranges from the full PDF | CBRE page chart data; full PDF on CBRE's media server |
 | H1 2026 | 2026-08-12 | All-property (also restates H2 2025) | CBRE page chart data |
 
-Gated or missing: every CBRE page from 2021 on offers "Download the full report" through cloud.cbrecommunications.com, which is a form. I did not fill it in. Where a copy of the full report sat on an open URL (cbre-ea.com, a CBRE broker team folder on mediaassets.cbre.com, tlcollect, university and association sites) I used it. Not found anywhere open: the full H1 2017, H2 2017, H1 2018, H1 2021 and H2 2022 to H1 2026 reports except H1 2023 and H2 2025. The Internet Archive was offline during this session, so archived copies of old cbre.us pages were not checked. That is the first place to look for the missing 2017-2018 full reports.
+Gated or missing: every CBRE page from 2021 on offers "Download the full report" through cloud.cbrecommunications.com, which is a form. I did not fill it in. Where a copy of the full report sat on an open URL (cbre-ea.com, a CBRE broker team folder on mediaassets.cbre.com, tlcollect, university and association sites) I used it. Not found anywhere open: the full H1 2017, H2 2017, H1 2018, H1 2021 and H2 2022 to H1 2026 reports except H1 2023 and H2 2025. The Internet Archive was offline when this was compiled, so archived copies of old cbre.us pages were not checked. That is the first place to look for the missing 2017-2018 full reports.
 
 How publication dates were set, in order of preference:
 1. The date printed on CBRE's own report page (all 2021-2026 editions; checked in the page HTML under the title).

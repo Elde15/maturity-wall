@@ -1,6 +1,6 @@
 # Los Angeles rules that change a buyer's numbers
 
-Status as of 2026-11-16. Companion to `la_rules_sources.csv` (same folder), which has 83 rows. Every value in the CSV was read from a page saved under `research_raw/la_rules/` in the session scratchpad, and its `quote` column matches the saved text once runs of whitespace are collapsed (PDF extractions wrap lines). Each row's `notes` names the raw file and says when the source was published.
+Status as of 2026-11-16. Companion to `la_rules_sources.csv` (same folder), which has 83 rows. Every value in the CSV was read from a page saved under `data/meta/research_raw/la_rules/` (git-ignored), and its `quote` column matches the saved text once runs of whitespace are collapsed (PDF extractions wrap lines). Each row's `notes` names the raw file and says when the source was published.
 
 ## The short version
 
